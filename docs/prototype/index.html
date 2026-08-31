@@ -1,0 +1,1167 @@
+<title>RaiseTechタイムライン</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=M+PLUS+1:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F5F4EE;
+    --surface: #FFFFFF;
+    --surface-2: #ECEAE0;
+    --border: #DDDBCE;
+    --ink: #1A1F1C;
+    --ink-muted: #656B60;
+    --ink-faint: #9BA097;
+    --accent: #0F7B6C;
+    --accent-strong: #0B5F53;
+    --accent-soft: #DFF1EA;
+    --accent-ink: #FFFFFF;
+    --like: #E1553C;
+    --like-soft: #FBE4DF;
+    --danger: #C7402B;
+    --danger-soft: #F8DEDA;
+    --shadow: 0 1px 2px rgba(26,31,28,0.06), 0 10px 28px -14px rgba(26,31,28,0.22);
+    --radius-s: 8px;
+    --radius-m: 14px;
+    --radius-l: 22px;
+    --font-display: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
+    --font-body: 'M PLUS 1', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1614;
+      --surface: #172120;
+      --surface-2: #1E2927;
+      --border: #2B3835;
+      --ink: #ECEFEA;
+      --ink-muted: #9DA89F;
+      --ink-faint: #66716A;
+      --accent: #45C7AA;
+      --accent-strong: #7CE0C7;
+      --accent-soft: #1B3934;
+      --accent-ink: #05211B;
+      --like: #FF8064;
+      --like-soft: #3B241E;
+      --danger: #FF8367;
+      --danger-soft: #3B241E;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 14px 32px -16px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1614;
+    --surface: #172120;
+    --surface-2: #1E2927;
+    --border: #2B3835;
+    --ink: #ECEFEA;
+    --ink-muted: #9DA89F;
+    --ink-faint: #66716A;
+    --accent: #45C7AA;
+    --accent-strong: #7CE0C7;
+    --accent-soft: #1B3934;
+    --accent-ink: #05211B;
+    --like: #FF8064;
+    --like-soft: #3B241E;
+    --danger: #FF8367;
+    --danger-soft: #3B241E;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 14px 32px -16px rgba(0,0,0,0.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; }
+  a { color: inherit; }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+  ::selection { background: var(--accent-soft); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  [hidden] { display: none !important; }
+  .mono { font-family: var(--font-mono); }
+
+  /* ---------- layout shell ---------- */
+  #app-shell {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+  .rail {
+    border-right: 1px solid var(--border);
+    padding: 22px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px;
+  }
+  .brand-mark {
+    width: 30px; height: 30px; border-radius: 9px;
+    background: var(--accent);
+    display: grid; place-items: center;
+    color: var(--accent-ink);
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 15px;
+    flex: none;
+  }
+  .brand-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16.5px;
+    letter-spacing: .01em;
+  }
+  .nav-list { display: flex; flex-direction: column; gap: 3px; list-style: none; margin: 0; padding: 0; }
+  .nav-btn {
+    display: flex; align-items: center; gap: 13px;
+    width: 100%; padding: 10px 12px;
+    border: none; background: transparent; color: var(--ink);
+    border-radius: var(--radius-m);
+    font-size: 15.5px; font-weight: 500;
+    cursor: pointer; text-align: left;
+  }
+  .nav-btn svg { flex: none; }
+  .nav-btn:hover { background: var(--surface-2); }
+  .nav-btn[aria-current="true"] { background: var(--accent-soft); color: var(--accent-strong); font-weight: 700; }
+  .compose-btn {
+    margin-top: 4px;
+    background: var(--accent); color: var(--accent-ink);
+    border: none; border-radius: 999px;
+    padding: 12px 18px; font-size: 15px; font-weight: 700;
+    cursor: pointer; box-shadow: var(--shadow);
+  }
+  .compose-btn:hover { background: var(--accent-strong); }
+  .rail-spacer { flex: 1; }
+  .rail-note {
+    font-size: 11.5px; color: var(--ink-faint);
+    padding: 0 8px; line-height: 1.5;
+  }
+  .rail-user {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px; border-radius: var(--radius-m);
+    border: 1px solid var(--border);
+    cursor: pointer; background: var(--surface);
+  }
+  .rail-user:hover { background: var(--surface-2); }
+  .rail-user-meta { min-width: 0; flex: 1; }
+  .rail-user-name { font-weight: 700; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rail-user-handle { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .logout-link { background: none; border: none; color: var(--ink-muted); font-size: 12.5px; cursor: pointer; padding: 4px 8px; text-decoration: underline; text-underline-offset: 2px; }
+  .logout-link:hover { color: var(--danger); }
+
+  .main { min-width: 0; display: flex; justify-content: center; }
+  .view { width: 100%; max-width: 620px; padding: 0 0 80px; }
+
+  .view-header {
+    position: sticky; top: 0; z-index: 5;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .view-header h2 { font-size: 18px; }
+  .back-btn {
+    border: none; background: var(--surface-2); color: var(--ink);
+    width: 34px; height: 34px; border-radius: 50%;
+    display: grid; place-items: center; cursor: pointer; flex: none;
+  }
+  .back-btn:hover { background: var(--border); }
+
+  .tabs { display: flex; border-bottom: 1px solid var(--border); }
+  .tab-btn {
+    flex: 1; padding: 14px 0; text-align: center;
+    background: none; border: none; cursor: pointer;
+    font-size: 14.5px; font-weight: 600; color: var(--ink-muted);
+    border-bottom: 3px solid transparent;
+    font-family: var(--font-body);
+  }
+  .tab-btn[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+  /* ---------- post card ---------- */
+  .post-card {
+    display: flex; gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .post-card:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+  .post-card:hover, .post-card:focus-within { cursor: pointer; }
+
+  .avatar {
+    flex: none; border-radius: 50%;
+    display: grid; place-items: center;
+    color: #fff; font-family: var(--font-display); font-weight: 700;
+    overflow: hidden;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar-md { width: 44px; height: 44px; font-size: 16px; }
+  .avatar-sm { width: 34px; height: 34px; font-size: 13px; }
+  .avatar-lg { width: 76px; height: 76px; font-size: 26px; }
+
+  .post-body-col { min-width: 0; flex: 1; }
+  .post-meta { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .post-meta .name { font-weight: 700; font-size: 14.5px; }
+  .post-meta .handle, .post-meta .time { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-muted); }
+  .post-text { margin: 3px 0 8px; font-size: 15px; white-space: pre-wrap; word-break: break-word; }
+  .post-actions { display: flex; align-items: center; gap: 22px; margin-top: 6px; }
+  .icon-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: none; cursor: pointer;
+    color: var(--ink-muted); font-size: 13px; font-family: var(--font-mono);
+    padding: 4px; border-radius: 8px;
+  }
+  .icon-btn:hover { color: var(--ink); }
+  .icon-btn.like[aria-pressed="true"] { color: var(--like); }
+  .icon-btn.like[aria-pressed="true"] svg { fill: var(--like); }
+  .icon-btn.follow-mini { color: var(--accent); }
+  .post-owner-actions { display: flex; gap: 8px; margin-left: auto; }
+  .text-link-btn { background: none; border: none; color: var(--ink-muted); font-size: 12.5px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+  .text-link-btn:hover { color: var(--ink); }
+  .text-link-btn.danger:hover { color: var(--danger); }
+
+  .img-grid { display: grid; gap: 4px; margin-top: 8px; border-radius: var(--radius-m); overflow: hidden; }
+  .img-grid.n1 { grid-template-columns: 1fr; }
+  .img-grid.n2 { grid-template-columns: 1fr 1fr; }
+  .img-grid.n3 { grid-template-columns: 1fr 1fr; }
+  .img-grid.n3 .img-cell:first-child { grid-row: span 2; }
+  .img-grid.n4 { grid-template-columns: 1fr 1fr; }
+  .img-cell { position: relative; aspect-ratio: 1.3 / 1; background: var(--surface-2); overflow: hidden; }
+  .img-grid.n1 .img-cell { aspect-ratio: 16/10; }
+  .img-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .img-ph { width: 100%; height: 100%; display: grid; place-items: center; }
+  .img-ph svg { opacity: .55; }
+
+  /* ---------- composer ---------- */
+  .composer { display: flex; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .composer textarea {
+    width: 100%; border: none; resize: none; background: transparent;
+    color: var(--ink); font-family: var(--font-body); font-size: 15.5px;
+    min-height: 44px; line-height: 1.5;
+  }
+  .composer textarea:focus { outline: none; }
+
+  /* ---------- profile ---------- */
+  .profile-header { padding: 18px 20px 6px; }
+  .profile-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .profile-name { font-family: var(--font-display); font-size: 21px; font-weight: 700; margin-top: 12px; }
+  .profile-handle { font-family: var(--font-mono); color: var(--ink-muted); font-size: 13.5px; }
+  .profile-bio { margin: 10px 0 12px; font-size: 14.5px; }
+  .profile-stats { display: flex; gap: 18px; font-size: 13.5px; color: var(--ink-muted); }
+  .profile-stats button { background: none; border: none; cursor: pointer; color: inherit; font: inherit; padding: 0; }
+  .profile-stats button:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  .profile-stats strong { color: var(--ink); font-family: var(--font-mono); }
+
+  .btn {
+    border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--ink);
+    font-weight: 700; font-size: 13.5px; padding: 9px 18px; cursor: pointer;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+  .btn-primary:hover { background: var(--accent-strong); }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-following { background: var(--accent-soft); color: var(--accent-strong); border-color: transparent; }
+  .btn-danger-outline { border-color: var(--danger); color: var(--danger); background: transparent; }
+  .btn-danger-outline:hover { background: var(--danger-soft); }
+  .btn-block { width: 100%; }
+  .btn-sm { padding: 6px 13px; font-size: 12.5px; }
+
+  /* ---------- search / user rows ---------- */
+  .search-box { display: flex; align-items: center; gap: 10px; margin: 4px 20px 0; padding: 10px 14px; background: var(--surface-2); border-radius: 999px; }
+  .search-box input { border: none; background: transparent; outline: none; width: 100%; font: inherit; color: var(--ink); }
+  .user-row { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .user-row-meta { min-width: 0; flex: 1; }
+  .user-row .btn { flex: none; }
+  .empty-state { padding: 60px 20px; text-align: center; color: var(--ink-muted); }
+  .empty-state svg { opacity: .5; margin-bottom: 10px; }
+
+  /* ---------- comments ---------- */
+  .comment { display: flex; gap: 10px; padding: 12px 20px; border-bottom: 1px solid var(--border); }
+  .comment-bubble { background: var(--surface-2); border-radius: var(--radius-m); padding: 8px 12px; }
+  .comment-composer { display: flex; gap: 10px; padding: 14px 20px; border-bottom: 1px solid var(--border); align-items: center; }
+  .comment-composer input { flex: 1; border: 1px solid var(--border); border-radius: 999px; padding: 9px 15px; background: var(--surface); color: var(--ink); font: inherit; }
+  .comment-composer input:focus { outline: none; border-color: var(--accent); }
+
+  /* ---------- auth ---------- */
+  .auth-screen {
+    min-height: 100vh; display: grid; place-items: center; padding: 24px;
+    background:
+      radial-gradient(circle at 15% 12%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 42%),
+      var(--bg);
+  }
+  .auth-card { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-l); padding: 32px 28px; box-shadow: var(--shadow); }
+  .auth-brand { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 22px; }
+  .auth-brand .brand-mark { width: 46px; height: 46px; font-size: 22px; border-radius: 14px; }
+  .auth-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; text-align: center; }
+  .auth-sub { font-size: 13px; color: var(--ink-muted); text-align: center; margin-top: 2px; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .field label { font-size: 12.5px; font-weight: 700; color: var(--ink-muted); }
+  .field input, .field textarea {
+    border: 1px solid var(--border); border-radius: var(--radius-s);
+    padding: 10px 12px; font: inherit; background: var(--bg); color: var(--ink);
+  }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+  .field-hint { font-size: 11.5px; color: var(--ink-faint); }
+  .auth-switch { text-align: center; margin-top: 16px; font-size: 13px; color: var(--ink-muted); }
+  .auth-switch button { background: none; border: none; color: var(--accent); font-weight: 700; cursor: pointer; font-size: 13px; }
+  .demo-note { margin-top: 18px; padding: 10px 12px; background: var(--surface-2); border-radius: var(--radius-s); font-size: 11.5px; color: var(--ink-muted); line-height: 1.6; }
+
+  /* ---------- modal ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(10, 14, 12, .5);
+    display: grid; place-items: start center; padding: 6vh 16px;
+    z-index: 50; overflow-y: auto;
+  }
+  .modal-card { width: 100%; max-width: 560px; background: var(--surface); border-radius: var(--radius-l); box-shadow: var(--shadow); overflow: hidden; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .modal-head h3 { font-size: 16px; }
+  .close-btn { background: var(--surface-2); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: grid; place-items: center; }
+  .close-btn:hover { background: var(--border); }
+  .modal-body { padding: 18px; }
+  .modal-foot { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-top: 1px solid var(--border); }
+  .char-count { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-muted); }
+  .char-count.warn { color: #B8862B; }
+  .char-count.over { color: var(--danger); font-weight: 700; }
+  .attach-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .attach-btn { display: flex; align-items: center; gap: 7px; background: none; border: 1px dashed var(--border); border-radius: 999px; padding: 7px 14px; font-size: 13px; color: var(--accent); cursor: pointer; }
+  .attach-btn:hover { background: var(--accent-soft); }
+  .attach-previews { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .attach-thumb { position: relative; width: 76px; height: 76px; border-radius: 10px; overflow: hidden; background: var(--surface-2); }
+  .attach-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .attach-remove { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; border: none; background: rgba(0,0,0,.6); color: #fff; cursor: pointer; display: grid; place-items: center; font-size: 12px; line-height: 1; }
+  .compose-avatar-row { display: flex; gap: 12px; }
+  .avatar-picker { display: flex; align-items: center; gap: 14px; }
+  .avatar-picker .btn { margin-top: 0; }
+
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 999px;
+    font-size: 13px; z-index: 100; box-shadow: var(--shadow);
+  }
+  /* ---------- responsive ---------- */
+  @media (max-width: 780px) {
+    #app-shell { grid-template-columns: 1fr; }
+    .rail {
+      position: fixed; bottom: 0; left: 0; right: 0; top: auto; height: auto;
+      flex-direction: row; align-items: center; padding: 8px 10px;
+      border-right: none; border-top: 1px solid var(--border);
+      background: var(--surface); z-index: 20;
+    }
+    .brand, .rail-user, .rail-note, .rail-spacer { display: none; }
+    .nav-list { flex-direction: row; flex: 1; justify-content: space-around; }
+    .nav-btn { flex-direction: column; gap: 3px; font-size: 10.5px; padding: 7px 4px; }
+    .nav-btn span.nav-label { font-size: 10.5px; }
+    .compose-btn { padding: 10px 14px; }
+    .main { padding-bottom: 64px; }
+  }
+</style>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<!-- ============ AUTH: LOGIN ============ -->
+<section id="view-login" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-mark">R</div>
+      <div class="auth-title">RaiseTechタイムライン</div>
+      <div class="auth-sub">学習コミュニティのためのタイムライン</div>
+    </div>
+    <form id="form-login">
+      <div class="field">
+        <label for="login-email">メールアドレス</label>
+        <input id="login-email" type="email" placeholder="you@example.com" value="haruka@example.com" required />
+      </div>
+      <div class="field">
+        <label for="login-password">パスワード</label>
+        <input id="login-password" type="password" placeholder="••••••••" value="password" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">ログイン</button>
+    </form>
+    <div class="auth-switch">アカウントをお持ちでないですか？ <button type="button" id="go-signup">新規登録</button></div>
+    <div class="demo-note">これは要件定義書に基づく静的プロトタイプです。実在のバックエンドはなく、どのメール・パスワードでもログインできます。投稿・いいね等の変更はページを再読み込みすると失われます。</div>
+  </div>
+</section>
+
+<!-- ============ AUTH: SIGNUP ============ -->
+<section id="view-signup" class="auth-screen" hidden>
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-mark">R</div>
+      <div class="auth-title">アカウントを作成</div>
+      <div class="auth-sub">RaiseTechタイムラインへようこそ</div>
+    </div>
+    <form id="form-signup">
+      <div class="field">
+        <label for="signup-name">表示名</label>
+        <input id="signup-name" type="text" placeholder="例）高橋 陽菜" required />
+      </div>
+      <div class="field">
+        <label for="signup-username">ユーザー名</label>
+        <input id="signup-username" type="text" placeholder="例）hina_takahashi" required />
+      </div>
+      <div class="field">
+        <label for="signup-email">メールアドレス</label>
+        <input id="signup-email" type="email" placeholder="you@example.com" required />
+      </div>
+      <div class="field">
+        <label for="signup-password">パスワード</label>
+        <input id="signup-password" type="password" placeholder="8文字以上" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">登録してはじめる</button>
+    </form>
+    <div class="auth-switch">既にアカウントをお持ちですか？ <button type="button" id="go-login">ログイン</button></div>
+  </div>
+</section>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app-shell" hidden>
+  <nav class="rail">
+    <div class="brand">
+      <div class="brand-mark">R</div>
+      <div class="brand-name">タイムライン</div>
+    </div>
+    <ul class="nav-list">
+      <li><button class="nav-btn" data-nav="timeline" aria-current="true">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        <span class="nav-label">ホーム</span>
+      </button></li>
+      <li><button class="nav-btn" data-nav="search">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <span class="nav-label">検索</span>
+      </button></li>
+      <li><button class="nav-btn" data-nav="profile" data-profile-id="me">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.8-4 5-6 8-6s6.2 2 8 6"/></svg>
+        <span class="nav-label">プロフィール</span>
+      </button></li>
+    </ul>
+    <button class="compose-btn" id="open-compose">投稿する</button>
+    <div class="rail-spacer"></div>
+    <p class="rail-note">静的プロトタイプ・データは保存されません</p>
+    <div class="rail-user" id="rail-user" data-nav="profile" data-profile-id="me"></div>
+    <button class="logout-link" id="logout-btn">ログアウト</button>
+  </nav>
+
+  <main class="main">
+    <!-- Timeline -->
+    <section id="view-timeline" class="view">
+      <header class="view-header"><h2>ホーム</h2></header>
+      <div class="tabs" role="tablist">
+        <button class="tab-btn" data-tab="all" role="tab" aria-selected="true">全体</button>
+        <button class="tab-btn" data-tab="following" role="tab" aria-selected="false">フォロー中</button>
+      </div>
+      <div class="composer">
+        <div id="composer-avatar"></div>
+        <button id="composer-fake" style="flex:1;text-align:left;background:none;border:none;color:var(--ink-faint);font:inherit;font-size:15.5px;cursor:text;">いまどうしてる？</button>
+      </div>
+      <div id="timeline-list"></div>
+    </section>
+
+    <!-- Post detail -->
+    <section id="view-post-detail" class="view" hidden>
+      <header class="view-header">
+        <button class="back-btn" data-back="timeline" aria-label="戻る">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h2>投稿</h2>
+      </header>
+      <div id="post-detail-content"></div>
+      <div id="post-comments"></div>
+    </section>
+
+    <!-- Profile -->
+    <section id="view-profile" class="view" hidden>
+      <header class="view-header">
+        <button class="back-btn" data-back="timeline" aria-label="戻る">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h2 id="profile-header-name">プロフィール</h2>
+      </header>
+      <div id="profile-content"></div>
+      <div class="tabs"><button class="tab-btn" aria-selected="true">投稿</button></div>
+      <div id="profile-posts"></div>
+    </section>
+
+    <!-- Profile edit -->
+    <section id="view-profile-edit" class="view" hidden>
+      <header class="view-header">
+        <button class="back-btn" data-back="profile" data-profile-id="me" aria-label="戻る">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h2>プロフィールを編集</h2>
+      </header>
+      <form id="form-profile-edit" style="padding:20px;">
+        <div class="avatar-picker">
+          <div id="profile-edit-avatar"></div>
+          <div>
+            <button type="button" class="btn btn-sm" id="profile-edit-avatar-btn">アイコンを変更</button>
+            <input type="file" id="profile-edit-avatar-input" accept="image/*" hidden />
+          </div>
+        </div>
+        <div class="field" style="margin-top:18px;">
+          <label for="edit-display-name">表示名</label>
+          <input id="edit-display-name" type="text" required />
+        </div>
+        <div class="field">
+          <label for="edit-bio">自己紹介</label>
+          <textarea id="edit-bio" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">保存する</button>
+      </form>
+    </section>
+
+    <!-- Follow / Follower list -->
+    <section id="view-follow-list" class="view" hidden>
+      <header class="view-header">
+        <button class="back-btn" id="follow-list-back" aria-label="戻る">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h2 id="follow-list-title">フォロー</h2>
+      </header>
+      <div id="follow-list-content"></div>
+    </section>
+
+    <!-- Search -->
+    <section id="view-search" class="view" hidden>
+      <header class="view-header"><h2>ユーザー検索</h2></header>
+      <div class="search-box">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="search-input" type="text" placeholder="ユーザー名・表示名で検索" />
+      </div>
+      <div id="search-results" style="margin-top:8px;"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ COMPOSE MODAL ============ -->
+<div id="modal-compose" class="modal-overlay" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="compose-title">投稿する</h3>
+      <button class="close-btn" data-close-modal aria-label="閉じる">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <form id="form-compose">
+      <div class="modal-body">
+        <div class="compose-avatar-row">
+          <div id="compose-modal-avatar"></div>
+          <div style="flex:1;">
+            <textarea id="compose-textarea" rows="4" placeholder="いまどうしてる？（280文字まで）"></textarea>
+            <div class="attach-row">
+              <button type="button" class="attach-btn" id="compose-attach-btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+                画像を追加
+              </button>
+              <span class="field-hint">最大4枚</span>
+              <input type="file" id="compose-image-input" accept="image/*" multiple hidden />
+            </div>
+            <div class="attach-previews" id="compose-previews"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <span class="char-count" id="compose-char-count">280</span>
+        <button type="submit" class="btn btn-primary" id="compose-submit" disabled>投稿する</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ CONFIRM MODAL ============ -->
+<div id="modal-confirm" class="modal-overlay" hidden>
+  <div class="modal-card" style="max-width:360px;">
+    <div class="modal-body" style="padding-top:22px;">
+      <p id="confirm-message" style="margin:0 0 6px;font-weight:700;font-size:15px;"></p>
+      <p id="confirm-sub" style="margin:0;color:var(--ink-muted);font-size:13px;"></p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close-modal>キャンセル</button>
+      <button class="btn btn-danger-outline" id="confirm-ok">削除する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- seed data ---------------- */
+  var AVATAR_COLORS = ["#0F7B6C", "#3B6E8F", "#8A5FBF", "#C9762F", "#B5484F", "#4C7A3D", "#286E8C"];
+  function colorFor(id) {
+    var sum = 0;
+    for (var i = 0; i < id.length; i++) sum += id.charCodeAt(i);
+    return AVATAR_COLORS[sum % AVATAR_COLORS.length];
+  }
+
+  var users = [
+    { id: "u1", name: "佐藤 遥", handle: "haruka_sato", bio: "フロントエンド学習中。React素振り記録用アカウント。", avatar: null },
+    { id: "u2", name: "鈴木 蓮", handle: "ren_suzuki", bio: "バックエンド専攻。Spring Bootと格闘中です。", avatar: null },
+    { id: "u3", name: "高橋 陽菜", handle: "hina_takahashi", bio: "駆け出しエンジニア🔰 毎日コミット目標。", avatar: null },
+    { id: "u4", name: "田中 大和", handle: "yamato_tanaka", bio: "インフラ・AWS勉強中。terraform apply が趣味。", avatar: null },
+    { id: "u5", name: "伊藤 澪", handle: "mio_ito", bio: "デザイン→エンジニア転向組。UIも書きます。", avatar: null },
+    { id: "u6", name: "渡辺 蒼", handle: "aoi_watanabe", bio: "週末はもくもく会に参加してます。", avatar: null },
+    { id: "u7", name: "山本 楓", handle: "kaede_yamamoto", bio: "N+1問題と戦う日々。", avatar: null },
+    { id: "u8", name: "中村 湊", handle: "minato_nakamura", bio: "テストコード書くの好きです。", avatar: null }
+  ];
+
+  var CURRENT_USER_ID = "u1";
+
+  var follows = [
+    ["u1", "u2"], ["u1", "u3"], ["u1", "u4"],
+    ["u2", "u1"], ["u2", "u3"],
+    ["u3", "u1"], ["u3", "u5"],
+    ["u4", "u1"],
+    ["u5", "u1"], ["u5", "u3"],
+    ["u6", "u1"],
+    ["u7", "u2"],
+    ["u8", "u1"]
+  ]; // [followerId, followeeId]
+
+  function imgPlaceholder(seed) {
+    return { placeholder: true, seed: seed };
+  }
+
+  var posts = [
+    { id: "p1", userId: "u2", body: "Spring Bootで初めてJWT認証を実装できた…！深夜3時までかかったけどとても勉強になった。", images: [], likes: ["u1", "u3", "u5"], createdAt: Date.now() - 1000 * 60 * 24 },
+    { id: "p2", userId: "u3", body: "今日の学習ログ：\n・React 19のuseフックを復習\n・280文字制限のバリデーション実装\n・タイムラインのページネーション調査\n\n少しずつ前進してます🔥", images: [imgPlaceholder(1)], likes: ["u1"], createdAt: Date.now() - 1000 * 60 * 60 * 2 },
+    { id: "p3", userId: "u4", body: "Terraformでやっと EC2 + RDS + ALB の構成をコード化できた。次はS3も足す予定。", images: [imgPlaceholder(2), imgPlaceholder(3)], likes: ["u1", "u2", "u6", "u7"], createdAt: Date.now() - 1000 * 60 * 60 * 5 },
+    { id: "p4", userId: "u5", body: "コンポーネント設計、最初から綺麗に作ろうとしすぎて逆に手が止まる問題。まず動くものを作ってから整理する派になりました。", images: [], likes: [], createdAt: Date.now() - 1000 * 60 * 60 * 7 },
+    { id: "p5", userId: "u1", body: "N+1問題、実際にクエリログ見ながらJOIN FETCHで解決できた瞬間が一番楽しい。", images: [], likes: ["u2", "u3", "u4", "u5", "u6"], createdAt: Date.now() - 1000 * 60 * 60 * 9 },
+    { id: "p6", userId: "u6", body: "週末のもくもく会でペアプロしたら、一人だと気づけなかったバグを30分で発見できた。人に説明するの大事。", images: [], likes: ["u1"], createdAt: Date.now() - 1000 * 60 * 60 * 12 },
+    { id: "p7", userId: "u7", body: "N+1問題と戦い続けて3日目。今日はDataLoaderパターンを試してみる。", images: [], likes: [], createdAt: Date.now() - 1000 * 60 * 60 * 15 },
+    { id: "p8", userId: "u8", body: "テストコードを先に書くようにしたら、仕様の考慮漏れに実装前に気づけるようになった。地味に効果でかい。", images: [imgPlaceholder(4)], likes: ["u1", "u3"], createdAt: Date.now() - 1000 * 60 * 60 * 20 },
+    { id: "p9", userId: "u3", body: "画像添付機能、FileReaderでプレビューを実装するだけならフロントだけで意外とサクッとできた。", images: [], likes: ["u1", "u5"], createdAt: Date.now() - 1000 * 60 * 60 * 30 },
+    { id: "p10", userId: "u2", body: "Gradleのビルドが急に速くなって感動している。キャッシュ設定を見直しただけなのに。", images: [], likes: [], createdAt: Date.now() - 1000 * 60 * 60 * 40 },
+    { id: "p11", userId: "u4", body: "インプレッション数が表示されないSNSって、数字を気にせず投稿できて逆に居心地いいかもしれない。", images: [], likes: ["u1", "u6", "u8"], createdAt: Date.now() - 1000 * 60 * 60 * 50 }
+  ];
+
+  var comments = [
+    { id: "c1", postId: "p1", userId: "u1", body: "深夜3時までお疲れさまです…！JWTの有効期限どれくらいにしましたか？", createdAt: Date.now() - 1000 * 60 * 60 * 20 },
+    { id: "c2", postId: "p1", userId: "u3", body: "自分も来週やる予定なので参考にさせてください🙏", createdAt: Date.now() - 1000 * 60 * 60 * 18 },
+    { id: "c3", postId: "p3", userId: "u1", body: "ALB周りの設定、詰まりやすいところあれば教えてほしいです！", createdAt: Date.now() - 1000 * 60 * 60 * 4 },
+    { id: "c4", postId: "p5", userId: "u4", body: "わかります、あの瞬間だけで一日頑張れる", createdAt: Date.now() - 1000 * 60 * 60 * 8 }
+  ];
+
+  var nextId = 100;
+  function genId(prefix) { return prefix + (nextId++); }
+
+  /* ---------------- state ---------------- */
+  var state = { view: "timeline", tab: "all", detailPostId: null, profileId: null, followListMode: null, followListUserId: null };
+  var composeMode = "create"; // or "edit"
+  var composeEditingId = null;
+  var composeImages = []; // {url, isUpload}
+  var profileEditAvatarDataUrl = null;
+
+  /* ---------------- helpers ---------------- */
+  function getUser(id) { return users.filter(function (u) { return u.id === id; })[0]; }
+  function me() { return getUser(CURRENT_USER_ID); }
+  function isFollowing(followerId, followeeId) {
+    return follows.some(function (f) { return f[0] === followerId && f[1] === followeeId; });
+  }
+  function followerCount(userId) { return follows.filter(function (f) { return f[1] === userId; }).length; }
+  function followingCount(userId) { return follows.filter(function (f) { return f[0] === userId; }).length; }
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function relTime(ts) {
+    var diff = Math.max(0, Date.now() - ts);
+    var min = Math.floor(diff / 60000);
+    if (min < 1) return "たった今";
+    if (min < 60) return min + "分前";
+    var hr = Math.floor(min / 60);
+    if (hr < 24) return hr + "時間前";
+    var day = Math.floor(hr / 24);
+    return day + "日前";
+  }
+  function avatarHtml(user, size) {
+    size = size || "md";
+    var cls = "avatar avatar-" + size;
+    if (user.avatar) {
+      return '<div class="' + cls + '"><img src="' + user.avatar + '" alt="" /></div>';
+    }
+    var initial = user.name.charAt(0);
+    return '<div class="' + cls + '" style="background:' + colorFor(user.id) + '">' + escapeHtml(initial) + "</div>";
+  }
+  function toast(msg) {
+    var el = document.getElementById("toast");
+    el.textContent = msg;
+    el.hidden = false;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { el.hidden = true; }, 2200);
+  }
+
+  var PH_ICON = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-6-6-5 5-2-2-5 5"/></svg>';
+  function imageGridHtml(images) {
+    if (!images || !images.length) return "";
+    var n = Math.min(images.length, 4);
+    var cells = images.slice(0, 4).map(function (img, i) {
+      var hue = img.placeholder ? (img.seed * 47) % 360 : 0;
+      var inner = img.placeholder
+        ? '<div class="img-ph" style="background:linear-gradient(135deg, hsl(' + hue + ' 45% 78%), hsl(' + (hue + 40) + ' 40% 65%)); color:hsl(' + hue + ' 30% 25%)">' + PH_ICON + "</div>"
+        : '<img src="' + img.url + '" alt="" />';
+      return '<div class="img-cell">' + inner + "</div>";
+    }).join("");
+    return '<div class="img-grid n' + n + '">' + cells + "</div>";
+  }
+
+  /* ---------------- rendering: timeline ---------------- */
+  function visiblePosts() {
+    var list = posts.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+    if (state.tab === "following") {
+      list = list.filter(function (p) { return isFollowing(CURRENT_USER_ID, p.userId) || p.userId === CURRENT_USER_ID; });
+    }
+    return list;
+  }
+
+  function postCardHtml(post, opts) {
+    opts = opts || {};
+    var author = getUser(post.userId);
+    var liked = post.likes.indexOf(CURRENT_USER_ID) !== -1;
+    var isMine = post.userId === CURRENT_USER_ID;
+    var ownerActions = isMine
+      ? '<div class="post-owner-actions">' +
+          '<button class="text-link-btn" data-action="edit-post" data-post-id="' + post.id + '">編集</button>' +
+          '<button class="text-link-btn danger" data-action="delete-post" data-post-id="' + post.id + '">削除</button>' +
+        "</div>"
+      : "";
+    return (
+      '<article class="post-card" data-action="open-post" data-post-id="' + post.id + '">' +
+        '<div data-action="open-profile" data-profile-id="' + author.id + '">' + avatarHtml(author, "md") + "</div>" +
+        '<div class="post-body-col">' +
+          '<div class="post-meta">' +
+            '<span class="name" data-action="open-profile" data-profile-id="' + author.id + '">' + escapeHtml(author.name) + "</span>" +
+            '<span class="handle">@' + escapeHtml(author.handle) + "</span>" +
+            '<span class="time">・' + relTime(post.createdAt) + "</span>" +
+          "</div>" +
+          '<p class="post-text">' + escapeHtml(post.body) + "</p>" +
+          imageGridHtml(post.images) +
+          '<div class="post-actions">' +
+            '<button class="icon-btn like" aria-pressed="' + liked + '" data-action="toggle-like" data-post-id="' + post.id + '">' +
+              '<svg width="17" height="17" viewBox="0 0 24 24" fill="' + (liked ? "currentColor" : "none") + '" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.7-10-9.3C.5 8 2.4 4.5 6 4.5c2 0 3.4 1 6 3.6 2.6-2.6 4-3.6 6-3.6 3.6 0 5.5 3.5 4 7.2C19.5 16.3 12 21 12 21z"/></svg>' +
+              '<span>' + post.likes.length + "</span>" +
+            "</button>" +
+            '<button class="icon-btn" data-action="open-post" data-post-id="' + post.id + '">' +
+              '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 01-8.5 8.5H5l-2 2V11.5A8.5 8.5 0 0111.5 3h1A8.5 8.5 0 0121 11.5z"/></svg>' +
+              '<span>' + comments.filter(function (c) { return c.postId === post.id; }).length + "</span>" +
+            "</button>" +
+            ownerActions +
+          "</div>" +
+        "</div>" +
+      "</article>"
+    );
+  }
+
+  function renderTimeline() {
+    var list = visiblePosts();
+    var html = list.length
+      ? list.map(function (p) { return postCardHtml(p); }).join("")
+      : '<div class="empty-state">' + PH_ICON + '<p>' + (state.tab === "following" ? "フォロー中のユーザーの投稿はまだありません。" : "まだ投稿がありません。") + "</p></div>";
+    document.getElementById("timeline-list").innerHTML = html;
+    document.getElementById("composer-avatar").innerHTML = avatarHtml(me(), "sm");
+  }
+
+  /* ---------------- rendering: post detail ---------------- */
+  function renderPostDetail() {
+    var post = posts.filter(function (p) { return p.id === state.detailPostId; })[0];
+    if (!post) { setView("timeline"); return; }
+    document.getElementById("post-detail-content").innerHTML = postCardHtml(post);
+    var list = comments.filter(function (c) { return c.postId === post.id; }).sort(function (a, b) { return a.createdAt - b.createdAt; });
+    var commentsHtml = list.map(function (c) {
+      var u = getUser(c.userId);
+      var mine = c.userId === CURRENT_USER_ID;
+      return (
+        '<div class="comment">' +
+          '<div data-action="open-profile" data-profile-id="' + u.id + '">' + avatarHtml(u, "sm") + "</div>" +
+          '<div style="flex:1;min-width:0;">' +
+            '<div class="comment-bubble">' +
+              '<div class="post-meta"><span class="name" style="font-size:13px;">' + escapeHtml(u.name) + '</span><span class="time">・' + relTime(c.createdAt) + "</span></div>" +
+              '<p style="margin:2px 0 0;font-size:14px;">' + escapeHtml(c.body) + "</p>" +
+            "</div>" +
+            (mine ? '<button class="text-link-btn danger" style="margin-top:4px;" data-action="delete-comment" data-comment-id="' + c.id + '">削除</button>' : "") +
+          "</div>" +
+        "</div>"
+      );
+    }).join("");
+    document.getElementById("post-comments").innerHTML =
+      '<div class="comment-composer">' +
+        avatarHtml(me(), "sm") +
+        '<input type="text" id="comment-input" placeholder="コメントする…" />' +
+        '<button class="btn btn-primary btn-sm" id="comment-submit">送信</button>' +
+      "</div>" +
+      (list.length ? commentsHtml : '<div class="empty-state" style="padding:36px 20px;">まだコメントはありません。</div>');
+  }
+
+  /* ---------------- rendering: profile ---------------- */
+  function renderProfile() {
+    var user = getUser(state.profileId) || me();
+    var isMe = user.id === CURRENT_USER_ID;
+    document.getElementById("profile-header-name").textContent = user.name;
+    var actionBtn = isMe
+      ? '<button class="btn" data-action="edit-profile">プロフィールを編集</button>'
+      : isFollowing(CURRENT_USER_ID, user.id)
+        ? '<button class="btn btn-following" data-action="toggle-follow" data-user-id="' + user.id + '">フォロー中</button>'
+        : '<button class="btn btn-primary" data-action="toggle-follow" data-user-id="' + user.id + '">フォローする</button>';
+
+    document.getElementById("profile-content").innerHTML =
+      '<div class="profile-header">' +
+        '<div class="profile-top">' + avatarHtml(user, "lg") + actionBtn + "</div>" +
+        '<div class="profile-name">' + escapeHtml(user.name) + "</div>" +
+        '<div class="profile-handle">@' + escapeHtml(user.handle) + "</div>" +
+        '<p class="profile-bio">' + escapeHtml(user.bio) + "</p>" +
+        '<div class="profile-stats">' +
+          '<button data-action="open-follow-list" data-mode="following" data-user-id="' + user.id + '"><strong>' + followingCount(user.id) + "</strong> フォロー中</button>" +
+          '<button data-action="open-follow-list" data-mode="followers" data-user-id="' + user.id + '"><strong>' + followerCount(user.id) + "</strong> フォロワー</button>" +
+        "</div>" +
+      "</div>";
+
+    var userPosts = posts.filter(function (p) { return p.userId === user.id; }).sort(function (a, b) { return b.createdAt - a.createdAt; });
+    document.getElementById("profile-posts").innerHTML = userPosts.length
+      ? userPosts.map(function (p) { return postCardHtml(p); }).join("")
+      : '<div class="empty-state">まだ投稿がありません。</div>';
+  }
+
+  function renderProfileEdit() {
+    var user = me();
+    profileEditAvatarDataUrl = user.avatar;
+    document.getElementById("profile-edit-avatar").innerHTML = avatarHtml(user, "lg");
+    document.getElementById("edit-display-name").value = user.name;
+    document.getElementById("edit-bio").value = user.bio;
+  }
+
+  /* ---------------- rendering: follow list ---------------- */
+  function renderFollowList() {
+    var user = getUser(state.followListUserId);
+    var mode = state.followListMode;
+    document.getElementById("follow-list-title").textContent = (mode === "following" ? user.name + "さんのフォロー中" : user.name + "さんのフォロワー");
+    var ids = mode === "following"
+      ? follows.filter(function (f) { return f[0] === user.id; }).map(function (f) { return f[1]; })
+      : follows.filter(function (f) { return f[1] === user.id; }).map(function (f) { return f[0]; });
+    var list = ids.map(getUser);
+    document.getElementById("follow-list-content").innerHTML = list.length
+      ? list.map(userRowHtml).join("")
+      : '<div class="empty-state">' + (mode === "following" ? "まだ誰もフォローしていません。" : "まだフォロワーがいません。") + "</div>";
+  }
+
+  function userRowHtml(u) {
+    var isMe = u.id === CURRENT_USER_ID;
+    var btn = isMe ? "" : isFollowing(CURRENT_USER_ID, u.id)
+      ? '<button class="btn btn-sm btn-following" data-action="toggle-follow" data-user-id="' + u.id + '">フォロー中</button>'
+      : '<button class="btn btn-sm btn-primary" data-action="toggle-follow" data-user-id="' + u.id + '">フォローする</button>';
+    return (
+      '<div class="user-row">' +
+        '<div data-action="open-profile" data-profile-id="' + u.id + '" style="display:flex;gap:12px;align-items:center;flex:1;min-width:0;cursor:pointer;">' +
+          avatarHtml(u, "md") +
+          '<div class="user-row-meta"><div class="name" style="font-weight:700;font-size:14px;">' + escapeHtml(u.name) + '</div><div class="handle mono" style="font-size:12.5px;color:var(--ink-muted);">@' + escapeHtml(u.handle) + "</div></div>" +
+        "</div>" +
+        btn +
+      "</div>"
+    );
+  }
+
+  /* ---------------- rendering: search ---------------- */
+  function renderSearch(query) {
+    query = (query || "").trim().toLowerCase();
+    var results = !query ? [] : users.filter(function (u) {
+      return u.id !== CURRENT_USER_ID && (u.name.toLowerCase().indexOf(query) !== -1 || u.handle.toLowerCase().indexOf(query) !== -1);
+    });
+    var el = document.getElementById("search-results");
+    if (!query) { el.innerHTML = '<div class="empty-state">ユーザー名や表示名で検索してみましょう。</div>'; return; }
+    el.innerHTML = results.length ? results.map(userRowHtml).join("") : '<div class="empty-state">「' + escapeHtml(query) + '」に一致するユーザーは見つかりませんでした。</div>';
+  }
+
+  /* ---------------- view switching ---------------- */
+  var VIEWS = ["timeline", "post-detail", "profile", "profile-edit", "follow-list", "search"];
+  function setView(name, params) {
+    params = params || {};
+    state.view = name;
+    if (name === "post-detail") state.detailPostId = params.postId;
+    if (name === "profile") state.profileId = params.profileId;
+    if (name === "follow-list") { state.followListMode = params.mode; state.followListUserId = params.userId; }
+
+    VIEWS.forEach(function (v) { document.getElementById("view-" + v).hidden = (v !== name); });
+    document.querySelectorAll(".nav-btn[data-nav]").forEach(function (btn) {
+      var nav = btn.getAttribute("data-nav");
+      var current = nav === name || (nav === "profile" && name === "profile" && state.profileId === CURRENT_USER_ID);
+      btn.setAttribute("aria-current", nav === "timeline" && name === "timeline" ? "true" : (nav === "search" && name === "search") ? "true" : (nav === "profile" && name === "profile" && state.profileId === CURRENT_USER_ID) ? "true" : "false");
+    });
+
+    if (name === "timeline") renderTimeline();
+    if (name === "post-detail") renderPostDetail();
+    if (name === "profile") renderProfile();
+    if (name === "profile-edit") renderProfileEdit();
+    if (name === "follow-list") renderFollowList();
+    if (name === "search") { document.getElementById("search-input").value = ""; renderSearch(""); setTimeout(function () { document.getElementById("search-input").focus(); }, 0); }
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------------- compose modal ---------------- */
+  function openCompose(mode, post) {
+    composeMode = mode;
+    composeImages = [];
+    var ta = document.getElementById("compose-textarea");
+    if (mode === "edit" && post) {
+      composeEditingId = post.id;
+      ta.value = post.body;
+      composeImages = post.images.slice();
+      document.getElementById("compose-title").textContent = "投稿を編集";
+      document.getElementById("compose-submit").textContent = "更新する";
+    } else {
+      composeEditingId = null;
+      ta.value = "";
+      document.getElementById("compose-title").textContent = "投稿する";
+      document.getElementById("compose-submit").textContent = "投稿する";
+    }
+    document.getElementById("compose-modal-avatar").innerHTML = avatarHtml(me(), "md");
+    renderComposePreviews();
+    updateComposeState();
+    document.getElementById("modal-compose").hidden = false;
+    setTimeout(function () { ta.focus(); }, 0);
+  }
+  function closeAllModals() {
+    document.getElementById("modal-compose").hidden = true;
+    document.getElementById("modal-confirm").hidden = true;
+  }
+  function renderComposePreviews() {
+    document.getElementById("compose-previews").innerHTML = composeImages.map(function (img, i) {
+      var inner = img.placeholder
+        ? '<div class="img-ph" style="background:linear-gradient(135deg, hsl(' + ((img.seed * 47) % 360) + ' 45% 78%), hsl(' + ((img.seed * 47 + 40) % 360) + ' 40% 65%));">' + PH_ICON + "</div>"
+        : '<img src="' + img.url + '" alt="" />';
+      return '<div class="attach-thumb">' + inner + '<button type="button" class="attach-remove" data-remove-image="' + i + '">✕</button></div>';
+    }).join("");
+  }
+  function updateComposeState() {
+    var text = document.getElementById("compose-textarea").value;
+    var len = text.length;
+    var remaining = 280 - len;
+    var countEl = document.getElementById("compose-char-count");
+    countEl.textContent = remaining;
+    countEl.className = "char-count" + (remaining < 0 ? " over" : remaining <= 20 ? " warn" : "");
+    var valid = (text.trim().length > 0 || composeImages.length > 0) && len <= 280;
+    document.getElementById("compose-submit").disabled = !valid;
+  }
+  function fileToDataUrl(file, cb) {
+    var reader = new FileReader();
+    reader.onload = function (e) { cb(e.target.result); };
+    reader.readAsDataURL(file);
+  }
+
+  /* ---------------- confirm modal ---------------- */
+  var confirmAction = null;
+  function openConfirm(message, sub, onOk) {
+    document.getElementById("confirm-message").textContent = message;
+    document.getElementById("confirm-sub").textContent = sub || "";
+    confirmAction = onOk;
+    document.getElementById("modal-confirm").hidden = false;
+  }
+
+  /* ---------------- event delegation ---------------- */
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest("[data-action]");
+    if (el) {
+      var action = el.getAttribute("data-action");
+      if (action === "open-post") { setView("post-detail", { postId: el.getAttribute("data-post-id") }); return; }
+      if (action === "open-profile") { setView("profile", { profileId: el.getAttribute("data-profile-id") }); return; }
+      if (action === "toggle-like") {
+        var post = posts.filter(function (p) { return p.id === el.getAttribute("data-post-id"); })[0];
+        var idx = post.likes.indexOf(CURRENT_USER_ID);
+        if (idx === -1) post.likes.push(CURRENT_USER_ID); else post.likes.splice(idx, 1);
+        if (state.view === "timeline") renderTimeline();
+        else if (state.view === "post-detail") renderPostDetail();
+        else if (state.view === "profile") renderProfile();
+        return;
+      }
+      if (action === "toggle-follow") {
+        var uid = el.getAttribute("data-user-id");
+        var fIdx = follows.findIndex(function (f) { return f[0] === CURRENT_USER_ID && f[1] === uid; });
+        if (fIdx === -1) { follows.push([CURRENT_USER_ID, uid]); toast(getUser(uid).name + "さんをフォローしました"); }
+        else { follows.splice(fIdx, 1); toast(getUser(uid).name + "さんのフォローを解除しました"); }
+        if (state.view === "profile") renderProfile();
+        if (state.view === "follow-list") renderFollowList();
+        if (state.view === "search") renderSearch(document.getElementById("search-input").value);
+        return;
+      }
+      if (action === "edit-post") {
+        var p = posts.filter(function (p) { return p.id === el.getAttribute("data-post-id"); })[0];
+        openCompose("edit", p);
+        return;
+      }
+      if (action === "delete-post") {
+        var pid = el.getAttribute("data-post-id");
+        openConfirm("この投稿を削除しますか？", "コメント・いいねも合わせて削除されます。この操作は取り消せません。", function () {
+          posts = posts.filter(function (p) { return p.id !== pid; });
+          comments = comments.filter(function (c) { return c.postId !== pid; });
+          closeAllModals();
+          toast("投稿を削除しました");
+          setView(state.view === "post-detail" ? "timeline" : state.view, { profileId: state.profileId });
+        });
+        return;
+      }
+      if (action === "delete-comment") {
+        var cid = el.getAttribute("data-comment-id");
+        openConfirm("このコメントを削除しますか？", "この操作は取り消せません。", function () {
+          comments = comments.filter(function (c) { return c.id !== cid; });
+          closeAllModals();
+          renderPostDetail();
+        });
+        return;
+      }
+      if (action === "edit-profile") { setView("profile-edit"); return; }
+      if (action === "open-follow-list") { setView("follow-list", { mode: el.getAttribute("data-mode"), userId: el.getAttribute("data-user-id") }); return; }
+    }
+
+    var nav = e.target.closest("[data-nav]");
+    if (nav) {
+      var target = nav.getAttribute("data-nav");
+      if (target === "profile") setView("profile", { profileId: nav.getAttribute("data-profile-id") || CURRENT_USER_ID });
+      else setView(target);
+      return;
+    }
+    var back = e.target.closest("[data-back]");
+    if (back) { setView(back.getAttribute("data-back"), { profileId: back.getAttribute("data-profile-id") }); return; }
+    var tab = e.target.closest(".tab-btn[data-tab]");
+    if (tab) {
+      state.tab = tab.getAttribute("data-tab");
+      document.querySelectorAll(".tab-btn[data-tab]").forEach(function (b) { b.setAttribute("aria-selected", b === tab ? "true" : "false"); });
+      renderTimeline();
+      return;
+    }
+    if (e.target.closest("[data-close-modal]")) { closeAllModals(); return; }
+    if (e.target === document.getElementById("modal-compose")) { closeAllModals(); return; }
+    if (e.target === document.getElementById("modal-confirm")) { closeAllModals(); return; }
+    if (e.target.id === "confirm-ok") { if (confirmAction) confirmAction(); return; }
+    if (e.target.id === "open-compose" || e.target.id === "composer-fake") { openCompose("create"); return; }
+    var rm = e.target.closest("[data-remove-image]");
+    if (rm) { composeImages.splice(parseInt(rm.getAttribute("data-remove-image"), 10), 1); renderComposePreviews(); updateComposeState(); return; }
+    if (e.target.id === "compose-attach-btn") { document.getElementById("compose-image-input").click(); return; }
+    if (e.target.id === "profile-edit-avatar-btn") { document.getElementById("profile-edit-avatar-input").click(); return; }
+    if (e.target.id === "comment-submit") { submitComment(); return; }
+  });
+
+  document.addEventListener("input", function (e) {
+    if (e.target.id === "compose-textarea") updateComposeState();
+    if (e.target.id === "search-input") renderSearch(e.target.value);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target.id === "comment-input") { e.preventDefault(); submitComment(); }
+  });
+  document.addEventListener("change", function (e) {
+    if (e.target.id === "compose-image-input") {
+      var files = Array.prototype.slice.call(e.target.files).slice(0, 4 - composeImages.length);
+      files.forEach(function (f) {
+        fileToDataUrl(f, function (url) {
+          composeImages.push({ url: url, isUpload: true });
+          renderComposePreviews();
+          updateComposeState();
+        });
+      });
+      e.target.value = "";
+    }
+    if (e.target.id === "profile-edit-avatar-input") {
+      var file = e.target.files[0];
+      if (file) fileToDataUrl(file, function (url) {
+        profileEditAvatarDataUrl = url;
+        document.getElementById("profile-edit-avatar").innerHTML = '<div class="avatar avatar-lg"><img src="' + url + '" alt="" /></div>';
+      });
+    }
+  });
+
+  function submitComment() {
+    var input = document.getElementById("comment-input");
+    var text = input.value.trim();
+    if (!text) return;
+    comments.push({ id: genId("c"), postId: state.detailPostId, userId: CURRENT_USER_ID, body: text, createdAt: Date.now() });
+    input.value = "";
+    renderPostDetail();
+  }
+
+  /* ---------------- forms ---------------- */
+  document.getElementById("form-login").addEventListener("submit", function (e) {
+    e.preventDefault();
+    document.getElementById("view-login").hidden = true;
+    document.getElementById("app-shell").hidden = false;
+    setView("timeline");
+    renderRailUser();
+    toast("ログインしました");
+  });
+  document.getElementById("form-signup").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = document.getElementById("signup-name").value.trim() || "新規ユーザー";
+    var handle = document.getElementById("signup-username").value.trim() || "new_user";
+    var newUser = { id: "me_" + Date.now(), name: name, handle: handle, bio: "はじめまして。RaiseTechタイムラインを始めました。", avatar: null };
+    users.push(newUser);
+    CURRENT_USER_ID = newUser.id;
+    document.getElementById("view-signup").hidden = true;
+    document.getElementById("app-shell").hidden = false;
+    setView("timeline");
+    renderRailUser();
+    toast("ようこそ、" + name + "さん！");
+  });
+  document.getElementById("go-signup").addEventListener("click", function () {
+    document.getElementById("view-login").hidden = true;
+    document.getElementById("view-signup").hidden = false;
+  });
+  document.getElementById("go-login").addEventListener("click", function () {
+    document.getElementById("view-signup").hidden = true;
+    document.getElementById("view-login").hidden = false;
+  });
+  document.getElementById("logout-btn").addEventListener("click", function () {
+    document.getElementById("app-shell").hidden = true;
+    document.getElementById("view-login").hidden = false;
+    toast("ログアウトしました");
+  });
+
+  document.getElementById("form-compose").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var text = document.getElementById("compose-textarea").value.trim();
+    if (composeMode === "edit" && composeEditingId) {
+      var post = posts.filter(function (p) { return p.id === composeEditingId; })[0];
+      post.body = text;
+      post.images = composeImages.slice();
+      toast("投稿を更新しました");
+    } else {
+      posts.unshift({ id: genId("p"), userId: CURRENT_USER_ID, body: text, images: composeImages.slice(), likes: [], createdAt: Date.now() });
+      toast("投稿しました");
+    }
+    closeAllModals();
+    if (state.view === "timeline") renderTimeline();
+    if (state.view === "profile") renderProfile();
+    if (state.view === "post-detail") renderPostDetail();
+  });
+
+  document.getElementById("form-profile-edit").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var user = me();
+    user.name = document.getElementById("edit-display-name").value.trim() || user.name;
+    user.bio = document.getElementById("edit-bio").value.trim();
+    user.avatar = profileEditAvatarDataUrl;
+    toast("プロフィールを更新しました");
+    renderRailUser();
+    setView("profile", { profileId: CURRENT_USER_ID });
+  });
+
+  function renderRailUser() {
+    var user = me();
+    document.getElementById("rail-user").innerHTML =
+      avatarHtml(user, "sm") +
+      '<div class="rail-user-meta"><div class="rail-user-name">' + escapeHtml(user.name) + '</div><div class="rail-user-handle">@' + escapeHtml(user.handle) + "</div></div>";
+  }
+
+  document.getElementById("follow-list-back").addEventListener("click", function () {
+    setView("profile", { profileId: state.followListUserId });
+  });
+})();
+</script>
