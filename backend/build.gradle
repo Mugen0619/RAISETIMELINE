@@ -50,3 +50,20 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+tasks.named('bootRun') {
+	def envFile = rootProject.file('.env')
+	if (envFile.exists()) {
+		envFile.readLines().each { line ->
+			def trimmed = line.trim()
+			if (trimmed && !trimmed.startsWith('#') && trimmed.contains('=')) {
+				def (key, value) = trimmed.split('=', 2)
+				environment(key.trim(), value.trim())
+			}
+		}
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.compilerArgs << '-Xlint:deprecation'
+}

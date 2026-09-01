@@ -5,7 +5,6 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
 import javax.crypto.SecretKey;
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class JwtService {
 
-	private final Key signingKey;
+	private final SecretKey signingKey;
 	private final long expirationMs;
 
 	public JwtService(
@@ -32,7 +31,7 @@ public class JwtService {
 				.claim("username", username)
 				.issuedAt(Date.from(now))
 				.expiration(Date.from(now.plusMillis(expirationMs)))
-				.signWith(signingKey)
+				.signWith(signingKey, Jwts.SIG.HS384)
 				.compact();
 	}
 
@@ -51,7 +50,7 @@ public class JwtService {
 
 	private Claims parseClaims(String token) {
 		return Jwts.parser()
-				.verifyWith((SecretKey) signingKey)
+				.verifyWith(signingKey)
 				.build()
 				.parseSignedClaims(token)
 				.getPayload();
