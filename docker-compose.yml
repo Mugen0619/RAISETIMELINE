@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:17
+    container_name: raisetimeline-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: raisetimeline
+      POSTGRES_USER: raisetimeline
+      POSTGRES_PASSWORD: raisetimeline
+    ports:
+      - "5432:5432"
+    volumes:
+      - raisetimeline-db-data:/var/lib/postgresql/data
+
+volumes:
+  raisetimeline-db-data:
