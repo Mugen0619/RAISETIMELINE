@@ -2,6 +2,7 @@ package com.raisetimeline.backend.common;
 
 import com.raisetimeline.backend.auth.DuplicateUserException;
 import com.raisetimeline.backend.auth.InvalidCredentialsException;
+import com.raisetimeline.backend.auth.InvalidRefreshTokenException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,12 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(InvalidCredentialsException.class)
 	public ResponseEntity<ApiError> handleInvalidCredentials(InvalidCredentialsException ex) {
+		ApiError body = new ApiError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized", ex.getMessage());
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+	}
+
+	@ExceptionHandler(InvalidRefreshTokenException.class)
+	public ResponseEntity<ApiError> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
 		ApiError body = new ApiError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized", ex.getMessage());
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
 	}

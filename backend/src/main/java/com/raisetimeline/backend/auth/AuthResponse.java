@@ -1,4 +1,4 @@
 package com.raisetimeline.backend.auth;
 
-public record AuthResponse(String token, Long userId, String username) {
+public record AuthResponse(String accessToken, String refreshToken, Long userId, String username, String displayName) {
 }
