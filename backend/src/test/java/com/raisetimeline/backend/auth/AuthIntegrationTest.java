@@ -43,7 +43,8 @@ class AuthIntegrationTest {
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		assertThat(response.getBody()).isNotNull();
-		assertThat(response.getBody().token()).isNotBlank();
+		assertThat(response.getBody().accessToken()).isNotBlank();
+		assertThat(response.getBody().refreshToken()).isNotBlank();
 
 		var saved = userRepository.findByEmail("alice@example.com").orElseThrow();
 		assertThat(saved.getPasswordHash()).isNotEqualTo("password123");
@@ -73,7 +74,8 @@ class AuthIntegrationTest {
 		ResponseEntity<AuthResponse> ok = restTemplate.postForEntity(url("/api/auth/login"), correct, AuthResponse.class);
 		assertThat(ok.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(ok.getBody()).isNotNull();
-		assertThat(ok.getBody().token()).isNotBlank();
+		assertThat(ok.getBody().accessToken()).isNotBlank();
+		assertThat(ok.getBody().refreshToken()).isNotBlank();
 
 		LoginRequest wrong = new LoginRequest("carol@example.com", "wrong-password");
 		ResponseEntity<String> unauthorized = restTemplate.postForEntity(url("/api/auth/login"), wrong, String.class);
@@ -95,11 +97,40 @@ class AuthIntegrationTest {
 		assertThat(invalidToken.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 
 		HttpHeaders validHeaders = new HttpHeaders();
-		validHeaders.setBearerAuth(registered.token());
+		validHeaders.setBearerAuth(registered.accessToken());
 		ResponseEntity<MeController.MeResponse> withToken = restTemplate.exchange(
 				url("/api/me"), org.springframework.http.HttpMethod.GET, new HttpEntity<>(validHeaders), MeController.MeResponse.class);
 		assertThat(withToken.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(withToken.getBody()).isNotNull();
 		assertThat(withToken.getBody().username()).isEqualTo("dave");
+	}
+
+	@Test
+	void refreshIssuesNewTokenPairAndRotatesOldRefreshToken() {
+		RegisterRequest register = new RegisterRequest("erin", "erin@example.com", "password123", "Erin");
+		AuthResponse registered = restTemplate.postForEntity(url("/api/auth/register"), register, AuthResponse.class).getBody();
+
+		RefreshRequest refreshRequest = new RefreshRequest(registered.refreshToken());
+		ResponseEntity<RefreshResponse> refreshed =
+				restTemplate.postForEntity(url("/api/auth/refresh"), refreshRequest, RefreshResponse.class);
+
+		assertThat(refreshed.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(refreshed.getBody()).isNotNull();
+		assertThat(refreshed.getBody().accessToken()).isNotBlank();
+		assertThat(refreshed.getBody().refreshToken()).isNotBlank();
+		assertThat(refreshed.getBody().refreshToken()).isNotEqualTo(registered.refreshToken());
+
+		ResponseEntity<String> reuseOldToken =
+				restTemplate.postForEntity(url("/api/auth/refresh"), refreshRequest, String.class);
+		assertThat(reuseOldToken.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void refreshRejectsUnknownToken() {
+		RefreshRequest refreshRequest = new RefreshRequest("this-refresh-token-does-not-exist");
+
+		ResponseEntity<String> response = restTemplate.postForEntity(url("/api/auth/refresh"), refreshRequest, String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 }

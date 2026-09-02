@@ -12,6 +12,7 @@
 | Comment | id, post_id(FK), user_id(FK), body, created_at | |
 | Like | id, post_id(FK), user_id(FK), created_at | post_id + user_idでユニーク制約 |
 | Follow | id, follower_id(FK→User), followee_id(FK→User), created_at | follower_id + followee_idでユニーク制約 |
+| RefreshToken | id, user_id(FK→User), token_hash, expires_at, created_at | 生トークンは保存せずSHA-256ハッシュのみ保存。使用時に削除し新トークンを再発行(ローテーション) |
 
 詳細なER図・インデックス設計は実装フェーズで別途整理する。
 

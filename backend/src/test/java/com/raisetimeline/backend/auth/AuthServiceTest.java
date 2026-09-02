@@ -36,13 +36,16 @@ class AuthServiceTest {
 	@Mock
 	private JwtService jwtService;
 
+	@Mock
+	private RefreshTokenService refreshTokenService;
+
 	private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 	private AuthService authService;
 
 	@BeforeEach
 	void setUp() {
-		authService = new AuthService(userRepository, passwordEncoder, jwtService);
+		authService = new AuthService(userRepository, passwordEncoder, jwtService, refreshTokenService);
 	}
 
 	@Test
@@ -52,11 +55,14 @@ class AuthServiceTest {
 		when(userRepository.existsByEmail("alice@example.com")).thenReturn(false);
 		when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		when(jwtService.generateToken(any(), eq("alice"))).thenReturn("fake-jwt-token");
+		when(refreshTokenService.issue(any(User.class))).thenReturn("fake-refresh-token");
 
 		AuthResponse response = authService.register(request);
 
-		assertThat(response.token()).isEqualTo("fake-jwt-token");
+		assertThat(response.accessToken()).isEqualTo("fake-jwt-token");
+		assertThat(response.refreshToken()).isEqualTo("fake-refresh-token");
 		assertThat(response.username()).isEqualTo("alice");
+		assertThat(response.displayName()).isEqualTo("Alice");
 
 		ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
 		verify(userRepository).save(captor.capture());
@@ -74,6 +80,7 @@ class AuthServiceTest {
 		when(userRepository.existsByEmail("noname@example.com")).thenReturn(false);
 		when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		when(jwtService.generateToken(any(), eq("noname"))).thenReturn("fake-jwt-token");
+		when(refreshTokenService.issue(any(User.class))).thenReturn("fake-refresh-token");
 
 		authService.register(request);
 
@@ -104,17 +111,20 @@ class AuthServiceTest {
 	}
 
 	@Test
-	void loginReturnsJwtForCorrectCredentials() {
+	void loginReturnsTokensForCorrectCredentials() {
 		User user = new User("dave", "dave@example.com", passwordEncoder.encode("password123"), "Dave");
 		ReflectionTestUtils.setField(user, "id", 42L);
 		when(userRepository.findByEmail("dave@example.com")).thenReturn(Optional.of(user));
 		when(jwtService.generateToken(42L, "dave")).thenReturn("fake-jwt-token");
+		when(refreshTokenService.issue(user)).thenReturn("fake-refresh-token");
 
 		AuthResponse response = authService.login(new LoginRequest("dave@example.com", "password123"));
 
-		assertThat(response.token()).isEqualTo("fake-jwt-token");
+		assertThat(response.accessToken()).isEqualTo("fake-jwt-token");
+		assertThat(response.refreshToken()).isEqualTo("fake-refresh-token");
 		assertThat(response.userId()).isEqualTo(42L);
 		assertThat(response.username()).isEqualTo("dave");
+		assertThat(response.displayName()).isEqualTo("Dave");
 	}
 
 	@Test
@@ -134,6 +144,31 @@ class AuthServiceTest {
 
 		assertThatThrownBy(() -> authService.login(new LoginRequest("nobody@example.com", "password123")))
 				.isInstanceOf(InvalidCredentialsException.class);
+
+		verify(jwtService, never()).generateToken(anyLong(), any());
+	}
+
+	@Test
+	void refreshReturnsNewTokenPairForValidRefreshToken() {
+		User user = new User("frank", "frank@example.com", "hashed", "Frank");
+		ReflectionTestUtils.setField(user, "id", 7L);
+		when(refreshTokenService.rotate("old-refresh-token")).thenReturn(user);
+		when(jwtService.generateToken(7L, "frank")).thenReturn("new-jwt-token");
+		when(refreshTokenService.issue(user)).thenReturn("new-refresh-token");
+
+		RefreshResponse response = authService.refresh(new RefreshRequest("old-refresh-token"));
+
+		assertThat(response.accessToken()).isEqualTo("new-jwt-token");
+		assertThat(response.refreshToken()).isEqualTo("new-refresh-token");
+	}
+
+	@Test
+	void refreshThrowsInvalidRefreshTokenForUnknownToken() {
+		when(refreshTokenService.rotate("bogus-token"))
+				.thenThrow(new InvalidRefreshTokenException("invalid refresh token"));
+
+		assertThatThrownBy(() -> authService.refresh(new RefreshRequest("bogus-token")))
+				.isInstanceOf(InvalidRefreshTokenException.class);
 
 		verify(jwtService, never()).generateToken(anyLong(), any());
 	}

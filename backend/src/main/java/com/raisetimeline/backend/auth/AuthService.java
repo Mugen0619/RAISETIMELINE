@@ -13,11 +13,14 @@ public class AuthService {
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtService jwtService;
+	private final RefreshTokenService refreshTokenService;
 
-	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService,
+			RefreshTokenService refreshTokenService) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtService = jwtService;
+		this.refreshTokenService = refreshTokenService;
 	}
 
 	@Transactional
@@ -35,11 +38,10 @@ public class AuthService {
 		User user = new User(request.username(), request.email(), passwordEncoder.encode(request.password()), displayName);
 		User saved = userRepository.save(user);
 
-		String token = jwtService.generateToken(saved.getId(), saved.getUsername());
-		return new AuthResponse(token, saved.getId(), saved.getUsername());
+		return issueAuthResponse(saved);
 	}
 
-	@Transactional(readOnly = true)
+	@Transactional
 	public AuthResponse login(LoginRequest request) {
 		User user = userRepository.findByEmail(request.email())
 				.orElseThrow(() -> new InvalidCredentialsException("invalid email or password"));
@@ -48,7 +50,21 @@ public class AuthService {
 			throw new InvalidCredentialsException("invalid email or password");
 		}
 
-		String token = jwtService.generateToken(user.getId(), user.getUsername());
-		return new AuthResponse(token, user.getId(), user.getUsername());
+		return issueAuthResponse(user);
+	}
+
+	@Transactional
+	public RefreshResponse refresh(RefreshRequest request) {
+		User user = refreshTokenService.rotate(request.refreshToken());
+
+		String accessToken = jwtService.generateToken(user.getId(), user.getUsername());
+		String refreshToken = refreshTokenService.issue(user);
+		return new RefreshResponse(accessToken, refreshToken);
+	}
+
+	private AuthResponse issueAuthResponse(User user) {
+		String accessToken = jwtService.generateToken(user.getId(), user.getUsername());
+		String refreshToken = refreshTokenService.issue(user);
+		return new AuthResponse(accessToken, refreshToken, user.getId(), user.getUsername(), user.getDisplayName());
 	}
 }

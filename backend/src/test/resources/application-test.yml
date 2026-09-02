@@ -11,3 +11,4 @@ spring:
 jwt:
   secret: test-only-secret-key-not-for-production-use-32bytes-min
   expiration-ms: 86400000
+  refresh-expiration-ms: 1209600000
