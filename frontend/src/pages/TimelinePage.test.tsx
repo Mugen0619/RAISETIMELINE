@@ -11,8 +11,8 @@ vi.mock('../api/posts')
 
 const mockedFetchTimeline = vi.mocked(postsApi.fetchTimeline)
 const mockedCreatePost = vi.mocked(postsApi.createPost)
-const mockedUpdatePost = vi.mocked(postsApi.updatePost)
 const mockedDeletePost = vi.mocked(postsApi.deletePost)
+const mockedToggleLike = vi.mocked(postsApi.toggleLike)
 
 function makePost(overrides: Partial<PostResponse> = {}): PostResponse {
   return {
@@ -23,6 +23,9 @@ function makePost(overrides: Partial<PostResponse> = {}): PostResponse {
     body: 'my post',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    commentCount: 0,
+    likeCount: 0,
+    likedByMe: false,
     ...overrides,
   }
 }
@@ -75,7 +78,7 @@ describe('TimelinePage', () => {
     expect(await screen.findByText('まだ投稿がありません。')).toBeInTheDocument()
   })
 
-  it('shows edit/delete buttons only for the current users own posts', async () => {
+  it('shows a delete button only for the current users own posts', async () => {
     const myPost = makePost({ id: 1, userId: 1, username: 'me', body: 'my own post' })
     const othersPost = makePost({ id: 2, userId: 2, username: 'someone', displayName: 'Someone', body: 'not mine' })
     mockedFetchTimeline.mockResolvedValue(page([myPost, othersPost]))
@@ -87,10 +90,24 @@ describe('TimelinePage', () => {
     const myCard = screen.getByText('my own post').closest('.MuiCard-root') as HTMLElement
     const othersCard = screen.getByText('not mine').closest('.MuiCard-root') as HTMLElement
 
-    expect(within(myCard).getByText('編集')).toBeInTheDocument()
     expect(within(myCard).getByText('削除')).toBeInTheDocument()
-    expect(within(othersCard).queryByText('編集')).not.toBeInTheDocument()
     expect(within(othersCard).queryByText('削除')).not.toBeInTheDocument()
+  })
+
+  it('toggles like on a post and reflects the new count', async () => {
+    const user = userEvent.setup()
+    const target = makePost({ id: 1, body: 'likeable post', likeCount: 2, likedByMe: false })
+    mockedFetchTimeline.mockResolvedValue(page([target]))
+    mockedToggleLike.mockResolvedValue({ postId: 1, liked: true, likeCount: 3 })
+
+    renderTimelinePage()
+    await screen.findByText('likeable post')
+
+    await user.click(screen.getByRole('button', { name: 'いいね' }))
+
+    expect(mockedToggleLike).toHaveBeenCalledWith(1)
+    expect(await screen.findByText('3')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'いいね' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('creates a post via the composer dialog and prepends it to the list', async () => {
@@ -111,28 +128,6 @@ describe('TimelinePage', () => {
     expect(mockedCreatePost).toHaveBeenCalledWith('brand new post')
     expect(await screen.findByText('brand new post')).toBeInTheDocument()
     expect(screen.queryByPlaceholderText('いまどうしてる？(280文字まで)')).not.toBeInTheDocument()
-  })
-
-  it('edits an own post via the composer dialog', async () => {
-    const user = userEvent.setup()
-    const original = makePost({ id: 1, body: 'original body' })
-    mockedFetchTimeline.mockResolvedValue(page([original]))
-    const updated = { ...original, body: 'updated body' }
-    mockedUpdatePost.mockResolvedValue(updated)
-
-    renderTimelinePage()
-    await screen.findByText('original body')
-
-    await user.click(screen.getByText('編集'))
-    const textarea = await screen.findByDisplayValue('original body')
-    await user.clear(textarea)
-    await user.click(textarea)
-    await user.paste('updated body')
-    await user.click(screen.getByRole('button', { name: '更新する' }))
-
-    expect(mockedUpdatePost).toHaveBeenCalledWith(1, 'updated body')
-    expect(await screen.findByText('updated body')).toBeInTheDocument()
-    expect(screen.queryByText('original body')).not.toBeInTheDocument()
   })
 
   it('deletes an own post after confirming', async () => {

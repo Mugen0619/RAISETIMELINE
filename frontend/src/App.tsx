@@ -4,6 +4,7 @@ import { useAuth } from './auth/AuthContext'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { TimelinePage } from './pages/TimelinePage'
+import { PostDetailPage } from './pages/PostDetailPage'
 
 function RootRedirect() {
   const { isAuthenticated } = useAuth()
@@ -17,6 +18,7 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/home" element={<TimelinePage />} />
+        <Route path="/posts/:id" element={<PostDetailPage />} />
       </Route>
       <Route path="/" element={<RootRedirect />} />
       <Route path="*" element={<RootRedirect />} />
