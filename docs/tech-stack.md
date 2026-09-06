@@ -14,6 +14,9 @@
 | TypeScript | 5.9系 | |
 | Vite | 7.3系 | 執筆時点の最新パッチは7.3.0。Vite 8(Rolldownバンドラ搭載)は新メジャーとして存在するが、今回は下書き案のVite 7系を維持 |
 | MUI(Material UI) | 7.3系 | MUIは v7 → v9 と続けてメジャーアップしているが、今回は下書き案のv7系を維持 |
+| React Router | 7.18系 | 画面遷移・認証ガードに使用 |
+| Vitest | 3.2系 | フロントエンドの単体・結合テスト。Vitest 5系は依存関係解決が複雑になり導入時にエラーが出たため3系を採用 |
+| React Testing Library | 16.3系 | Vitestと組み合わせてコンポーネントテストに使用(`@testing-library/jest-dom` 6.9系、`@testing-library/user-event` 14.6系、`jsdom` 26.1系) |
 
 ## バックエンド
 
