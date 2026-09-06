@@ -17,7 +17,7 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { createPost, deletePost, fetchTimeline, updatePost, type PostResponse } from '../api/posts'
+import { createPost, deletePost, fetchTimeline, toggleLike, type PostResponse } from '../api/posts'
 import { PostCard } from '../components/PostCard'
 import { PostComposerDialog } from '../components/PostComposerDialog'
 import { ConfirmDialog } from '../components/ConfirmDialog'
@@ -40,7 +40,6 @@ export function TimelinePage() {
   const [error, setError] = useState<string | null>(null)
 
   const [composerOpen, setComposerOpen] = useState(false)
-  const [editingPost, setEditingPost] = useState<PostResponse | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<PostResponse | null>(null)
   const [hasNewPosts, setHasNewPosts] = useState(false)
 
@@ -134,11 +133,15 @@ export function TimelinePage() {
     setComposerOpen(false)
   }
 
-  const handleEditSubmit = async (body: string) => {
-    if (!editingPost) return
-    const updated = await updatePost(editingPost.id, body)
-    setPosts((prev) => prev.map((post) => (post.id === updated.id ? updated : post)))
-    setEditingPost(null)
+  const handleToggleLike = async (post: PostResponse) => {
+    try {
+      const result = await toggleLike(post.id)
+      setPosts((prev) =>
+        prev.map((p) => (p.id === post.id ? { ...p, likeCount: result.likeCount, likedByMe: result.liked } : p)),
+      )
+    } catch {
+      setError('いいねの操作に失敗しました。')
+    }
   }
 
   const handleDeleteConfirmed = async () => {
@@ -210,8 +213,8 @@ export function TimelinePage() {
                 key={post.id}
                 post={post}
                 isOwner={post.userId === user?.userId}
-                onEdit={setEditingPost}
                 onDelete={setDeleteTarget}
+                onToggleLike={handleToggleLike}
               />
             ))}
           </Stack>
@@ -240,15 +243,6 @@ export function TimelinePage() {
         mode="create"
         onClose={() => setComposerOpen(false)}
         onSubmit={handleCreateSubmit}
-      />
-
-      <PostComposerDialog
-        key={editingPost?.id ?? 'edit-closed'}
-        open={editingPost !== null}
-        mode="edit"
-        initialBody={editingPost?.body ?? ''}
-        onClose={() => setEditingPost(null)}
-        onSubmit={handleEditSubmit}
       />
 
       <ConfirmDialog
