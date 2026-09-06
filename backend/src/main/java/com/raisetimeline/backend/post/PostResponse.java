@@ -9,9 +9,12 @@ public record PostResponse(
 		String displayName,
 		String body,
 		Instant createdAt,
-		Instant updatedAt) {
+		Instant updatedAt,
+		long commentCount,
+		long likeCount,
+		boolean likedByMe) {
 
-	public static PostResponse from(Post post) {
+	public static PostResponse from(Post post, long commentCount, long likeCount, boolean likedByMe) {
 		return new PostResponse(
 				post.getId(),
 				post.getUser().getId(),
@@ -19,6 +22,9 @@ public record PostResponse(
 				post.getUser().getDisplayName(),
 				post.getBody(),
 				post.getCreatedAt(),
-				post.getUpdatedAt());
+				post.getUpdatedAt(),
+				commentCount,
+				likeCount,
+				likedByMe);
 	}
 }

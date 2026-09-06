@@ -3,6 +3,8 @@ package com.raisetimeline.backend.common;
 import com.raisetimeline.backend.auth.DuplicateUserException;
 import com.raisetimeline.backend.auth.InvalidCredentialsException;
 import com.raisetimeline.backend.auth.InvalidRefreshTokenException;
+import com.raisetimeline.backend.comment.CommentNotFoundException;
+import com.raisetimeline.backend.comment.ForbiddenCommentAccessException;
 import com.raisetimeline.backend.post.ForbiddenPostAccessException;
 import com.raisetimeline.backend.post.PostNotFoundException;
 import java.util.LinkedHashMap;
@@ -51,6 +53,18 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(ForbiddenPostAccessException.class)
 	public ResponseEntity<ApiError> handleForbiddenPostAccess(ForbiddenPostAccessException ex) {
+		ApiError body = new ApiError(HttpStatus.FORBIDDEN.value(), "Forbidden", ex.getMessage());
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+	}
+
+	@ExceptionHandler(CommentNotFoundException.class)
+	public ResponseEntity<ApiError> handleCommentNotFound(CommentNotFoundException ex) {
+		ApiError body = new ApiError(HttpStatus.NOT_FOUND.value(), "Not Found", ex.getMessage());
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+	}
+
+	@ExceptionHandler(ForbiddenCommentAccessException.class)
+	public ResponseEntity<ApiError> handleForbiddenCommentAccess(ForbiddenCommentAccessException ex) {
 		ApiError body = new ApiError(HttpStatus.FORBIDDEN.value(), "Forbidden", ex.getMessage());
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
 	}

@@ -60,10 +60,15 @@ class PostControllerTest {
 		return new UsernamePasswordAuthenticationToken(user, null, List.of());
 	}
 
+	private static PostResponse postResponse(Long id, Long userId, String username, String displayName, String body) {
+		Instant now = Instant.now();
+		return new PostResponse(id, userId, username, displayName, body, now, now, 0, 0, false);
+	}
+
 	@Test
 	void createPostReturns201WithBody() throws Exception {
 		User author = userWithId(1L, "alice");
-		PostResponse response = new PostResponse(100L, 1L, "alice", "Alice", "hello world", Instant.now(), Instant.now());
+		PostResponse response = postResponse(100L, 1L, "alice", "Alice", "hello world");
 		when(postService.createPost(eq(author), any(PostRequest.class))).thenReturn(response);
 
 		mockMvc.perform(post("/api/posts")
@@ -101,9 +106,9 @@ class PostControllerTest {
 	@Test
 	void getTimelineReturnsPagedContent() throws Exception {
 		User author = userWithId(1L, "alice");
-		PostResponse response = new PostResponse(100L, 1L, "alice", "Alice", "hello world", Instant.now(), Instant.now());
+		PostResponse response = postResponse(100L, 1L, "alice", "Alice", "hello world");
 		var pageable = PageRequest.of(0, 20);
-		when(postService.getTimeline(any())).thenReturn(new PageImpl<>(List.of(response), pageable, 1));
+		when(postService.getTimeline(any(), eq(1L))).thenReturn(new PageImpl<>(List.of(response), pageable, 1));
 
 		mockMvc.perform(get("/api/posts").with(authentication(authOf(author))))
 				.andExpect(status().isOk())
@@ -112,9 +117,32 @@ class PostControllerTest {
 	}
 
 	@Test
+	void getPostReturnsPostWithCounts() throws Exception {
+		User author = userWithId(1L, "alice");
+		Instant now = Instant.now();
+		PostResponse response = new PostResponse(100L, 1L, "alice", "Alice", "hello world", now, now, 3, 5, true);
+		when(postService.getPost(100L, 1L)).thenReturn(response);
+
+		mockMvc.perform(get("/api/posts/{id}", 100L).with(authentication(authOf(author))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.commentCount", is(3)))
+				.andExpect(jsonPath("$.likeCount", is(5)))
+				.andExpect(jsonPath("$.likedByMe", is(true)));
+	}
+
+	@Test
+	void getPostReturns404ForUnknownPost() throws Exception {
+		User author = userWithId(1L, "alice");
+		when(postService.getPost(999L, 1L)).thenThrow(new PostNotFoundException("post not found: 999"));
+
+		mockMvc.perform(get("/api/posts/{id}", 999L).with(authentication(authOf(author))))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
 	void updatePostReturns200WithUpdatedBody() throws Exception {
 		User author = userWithId(1L, "alice");
-		PostResponse response = new PostResponse(100L, 1L, "alice", "Alice", "updated body", Instant.now(), Instant.now());
+		PostResponse response = postResponse(100L, 1L, "alice", "Alice", "updated body");
 		when(postService.updatePost(eq(100L), eq(author), any(PostRequest.class))).thenReturn(response);
 
 		mockMvc.perform(put("/api/posts/{id}", 100L)

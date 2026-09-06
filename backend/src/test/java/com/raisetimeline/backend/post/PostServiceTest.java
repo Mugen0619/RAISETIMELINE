@@ -3,10 +3,14 @@ package com.raisetimeline.backend.post;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.raisetimeline.backend.comment.CommentRepository;
+import com.raisetimeline.backend.like.LikeRepository;
 import com.raisetimeline.backend.user.User;
 import java.time.Instant;
 import java.util.List;
@@ -28,11 +32,17 @@ class PostServiceTest {
 	@Mock
 	private PostRepository postRepository;
 
+	@Mock
+	private CommentRepository commentRepository;
+
+	@Mock
+	private LikeRepository likeRepository;
+
 	private PostService postService;
 
 	@BeforeEach
 	void setUp() {
-		postService = new PostService(postRepository);
+		postService = new PostService(postRepository, commentRepository, likeRepository);
 	}
 
 	private static User userWithId(long id, String username) {
@@ -42,7 +52,7 @@ class PostServiceTest {
 	}
 
 	@Test
-	void createPostSavesPostAuthoredByCurrentUser() {
+	void createPostSavesPostAuthoredByCurrentUserWithZeroCounts() {
 		User author = userWithId(1L, "alice");
 		when(postRepository.save(any(Post.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -55,22 +65,68 @@ class PostServiceTest {
 		assertThat(response.userId()).isEqualTo(1L);
 		assertThat(response.username()).isEqualTo("alice");
 		assertThat(response.body()).isEqualTo("hello world");
+		assertThat(response.commentCount()).isZero();
+		assertThat(response.likeCount()).isZero();
+		assertThat(response.likedByMe()).isFalse();
 	}
 
 	@Test
-	void getTimelineMapsPageOfPostsToPostResponses() {
+	void getTimelineMapsPageOfPostsWithBulkCommentAndLikeCounts() {
 		User author = userWithId(1L, "alice");
 		Post post = new Post(author, "hello world");
 		ReflectionTestUtils.setField(post, "id", 100L);
 		Pageable pageable = PageRequest.of(0, 20);
 		when(postRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(post), pageable, 1));
+		when(commentRepository.countGroupedByPostIds(List.of(100L))).thenReturn(List.of(countOf(100L, 3)));
+		when(likeRepository.countGroupedByPostIds(List.of(100L))).thenReturn(List.of(countOf(100L, 5)));
+		when(likeRepository.findLikedPostIds(eq(1L), eq(List.of(100L)))).thenReturn(List.of(100L));
 
-		var page = postService.getTimeline(pageable);
+		var page = postService.getTimeline(pageable, 1L);
 
 		assertThat(page.getTotalElements()).isEqualTo(1);
-		assertThat(page.getContent()).hasSize(1);
-		assertThat(page.getContent().get(0).id()).isEqualTo(100L);
-		assertThat(page.getContent().get(0).username()).isEqualTo("alice");
+		PostResponse response = page.getContent().get(0);
+		assertThat(response.id()).isEqualTo(100L);
+		assertThat(response.username()).isEqualTo("alice");
+		assertThat(response.commentCount()).isEqualTo(3);
+		assertThat(response.likeCount()).isEqualTo(5);
+		assertThat(response.likedByMe()).isTrue();
+	}
+
+	@Test
+	void getTimelineSkipsCountQueriesWhenPageIsEmpty() {
+		Pageable pageable = PageRequest.of(0, 20);
+		when(postRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+		var page = postService.getTimeline(pageable, 1L);
+
+		assertThat(page.getTotalElements()).isZero();
+		verify(commentRepository, never()).countGroupedByPostIds(any());
+		verify(likeRepository, never()).countGroupedByPostIds(any());
+		verify(likeRepository, never()).findLikedPostIds(anyLong(), any());
+	}
+
+	@Test
+	void getPostReturnsPostWithCountsAndLikedByMeFlag() {
+		User author = userWithId(1L, "alice");
+		Post post = new Post(author, "hello world");
+		ReflectionTestUtils.setField(post, "id", 100L);
+		when(postRepository.findById(100L)).thenReturn(Optional.of(post));
+		when(commentRepository.countByPostId(100L)).thenReturn(2L);
+		when(likeRepository.countByPostId(100L)).thenReturn(4L);
+		when(likeRepository.existsByPostIdAndUserId(100L, 9L)).thenReturn(true);
+
+		PostResponse response = postService.getPost(100L, 9L);
+
+		assertThat(response.commentCount()).isEqualTo(2);
+		assertThat(response.likeCount()).isEqualTo(4);
+		assertThat(response.likedByMe()).isTrue();
+	}
+
+	@Test
+	void getPostThrowsNotFoundForUnknownPost() {
+		when(postRepository.findById(999L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> postService.getPost(999L, 1L)).isInstanceOf(PostNotFoundException.class);
 	}
 
 	@Test
@@ -124,7 +180,7 @@ class PostServiceTest {
 	}
 
 	@Test
-	void deletePostRemovesPostWhenCurrentUserIsAuthor() {
+	void deletePostRemovesPostAndItsCommentsAndLikesWhenCurrentUserIsAuthor() {
 		User author = userWithId(1L, "alice");
 		Post post = new Post(author, "body");
 		ReflectionTestUtils.setField(post, "id", 100L);
@@ -132,6 +188,8 @@ class PostServiceTest {
 
 		postService.deletePost(100L, author);
 
+		verify(likeRepository).deleteByPostId(100L);
+		verify(commentRepository).deleteByPostId(100L);
 		verify(postRepository).delete(post);
 	}
 
@@ -147,6 +205,8 @@ class PostServiceTest {
 				.isInstanceOf(ForbiddenPostAccessException.class);
 
 		verify(postRepository, never()).delete(any());
+		verify(likeRepository, never()).deleteByPostId(any());
+		verify(commentRepository, never()).deleteByPostId(any());
 	}
 
 	@Test
@@ -158,5 +218,19 @@ class PostServiceTest {
 				.isInstanceOf(PostNotFoundException.class);
 
 		verify(postRepository, never()).delete(any());
+	}
+
+	private static PostCountProjection countOf(long postId, long count) {
+		return new PostCountProjection() {
+			@Override
+			public Long getPostId() {
+				return postId;
+			}
+
+			@Override
+			public long getCount() {
+				return count;
+			}
+		};
 	}
 }

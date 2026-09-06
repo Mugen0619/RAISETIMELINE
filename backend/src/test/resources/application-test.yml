@@ -7,6 +7,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+    properties:
+      hibernate:
+        generate_statistics: true
 
 jwt:
   secret: test-only-secret-key-not-for-production-use-32bytes-min

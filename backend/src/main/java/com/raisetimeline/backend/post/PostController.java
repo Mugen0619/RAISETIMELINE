@@ -38,8 +38,16 @@ public class PostController {
 
 	@GetMapping
 	public PagedModel<PostResponse> getTimeline(
+			@AuthenticationPrincipal User currentUser,
 			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC) Pageable pageable) {
-		return new PagedModel<>(postService.getTimeline(pageable));
+		return new PagedModel<>(postService.getTimeline(pageable, currentUser.getId()));
+	}
+
+	@GetMapping("/{id}")
+	public PostResponse getPost(
+			@PathVariable Long id,
+			@AuthenticationPrincipal User currentUser) {
+		return postService.getPost(id, currentUser.getId());
 	}
 
 	@PutMapping("/{id}")
