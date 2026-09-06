@@ -3,6 +3,8 @@ package com.raisetimeline.backend.common;
 import com.raisetimeline.backend.auth.DuplicateUserException;
 import com.raisetimeline.backend.auth.InvalidCredentialsException;
 import com.raisetimeline.backend.auth.InvalidRefreshTokenException;
+import com.raisetimeline.backend.post.ForbiddenPostAccessException;
+import com.raisetimeline.backend.post.PostNotFoundException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -39,5 +41,17 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiError> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
 		ApiError body = new ApiError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized", ex.getMessage());
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+	}
+
+	@ExceptionHandler(PostNotFoundException.class)
+	public ResponseEntity<ApiError> handlePostNotFound(PostNotFoundException ex) {
+		ApiError body = new ApiError(HttpStatus.NOT_FOUND.value(), "Not Found", ex.getMessage());
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+	}
+
+	@ExceptionHandler(ForbiddenPostAccessException.class)
+	public ResponseEntity<ApiError> handleForbiddenPostAccess(ForbiddenPostAccessException ex) {
+		ApiError body = new ApiError(HttpStatus.FORBIDDEN.value(), "Forbidden", ex.getMessage());
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
 	}
 }
