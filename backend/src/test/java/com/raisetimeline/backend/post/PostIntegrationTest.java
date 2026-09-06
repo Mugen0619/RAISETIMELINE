@@ -4,6 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.raisetimeline.backend.auth.AuthResponse;
 import com.raisetimeline.backend.auth.RegisterRequest;
+import com.raisetimeline.backend.comment.CommentRepository;
+import com.raisetimeline.backend.comment.CommentRequest;
+import com.raisetimeline.backend.comment.CommentResponse;
+import com.raisetimeline.backend.like.LikeRepository;
+import com.raisetimeline.backend.like.LikeResponse;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -34,6 +39,12 @@ class PostIntegrationTest {
 
 	@Autowired
 	private PostRepository postRepository;
+
+	@Autowired
+	private CommentRepository commentRepository;
+
+	@Autowired
+	private LikeRepository likeRepository;
 
 	private String url(String path) {
 		return "http://localhost:" + port + path;
@@ -161,6 +172,59 @@ class PostIntegrationTest {
 				url("/api/posts/" + postId), HttpMethod.DELETE, authedNoBody(ownerToken), Void.class);
 		assertThat(ownerDelete.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 		assertThat(postRepository.findById(postId)).isEmpty();
+	}
+
+	@Test
+	void getPostReturnsPostWithCommentAndLikeCounts() {
+		String ownerToken = registerAndGetAccessToken("ivan");
+		String otherToken = registerAndGetAccessToken("judy");
+
+		ResponseEntity<PostResponse> created = restTemplate.exchange(
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("detail post"), ownerToken), PostResponse.class);
+		Long postId = created.getBody().id();
+
+		restTemplate.exchange(url("/api/posts/" + postId + "/comments"), HttpMethod.POST,
+				authedBody(new CommentRequest("a comment"), otherToken), CommentResponse.class);
+		restTemplate.exchange(url("/api/posts/" + postId + "/likes"), HttpMethod.POST, authedNoBody(otherToken), LikeResponse.class);
+
+		ResponseEntity<PostResponse> detail = restTemplate.exchange(
+				url("/api/posts/" + postId), HttpMethod.GET, authedNoBody(ownerToken), PostResponse.class);
+
+		assertThat(detail.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(detail.getBody().commentCount()).isEqualTo(1L);
+		assertThat(detail.getBody().likeCount()).isEqualTo(1L);
+		assertThat(detail.getBody().likedByMe()).isFalse();
+	}
+
+	@Test
+	void getPostReturns404ForUnknownPost() {
+		String token = registerAndGetAccessToken("kevin");
+
+		ResponseEntity<String> response = restTemplate.exchange(
+				url("/api/posts/999999"), HttpMethod.GET, authedNoBody(token), String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
+
+	@Test
+	void deletingPostCascadesToItsCommentsAndLikes() {
+		String ownerToken = registerAndGetAccessToken("laura");
+		String otherToken = registerAndGetAccessToken("mike");
+
+		ResponseEntity<PostResponse> created = restTemplate.exchange(
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("to be deleted with children"), ownerToken), PostResponse.class);
+		Long postId = created.getBody().id();
+
+		restTemplate.exchange(url("/api/posts/" + postId + "/comments"), HttpMethod.POST,
+				authedBody(new CommentRequest("a comment"), otherToken), CommentResponse.class);
+		restTemplate.exchange(url("/api/posts/" + postId + "/likes"), HttpMethod.POST, authedNoBody(otherToken), LikeResponse.class);
+
+		ResponseEntity<Void> delete = restTemplate.exchange(
+				url("/api/posts/" + postId), HttpMethod.DELETE, authedNoBody(ownerToken), Void.class);
+
+		assertThat(delete.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(commentRepository.countByPostId(postId)).isZero();
+		assertThat(likeRepository.countByPostId(postId)).isZero();
 	}
 
 	@Test
