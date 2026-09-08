@@ -10,4 +10,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	@EntityGraph(attributePaths = "user")
 	@Override
 	Page<Post> findAll(Pageable pageable);
+
+	@EntityGraph(attributePaths = "user")
+	Page<Post> findByUserId(Long userId, Pageable pageable);
 }

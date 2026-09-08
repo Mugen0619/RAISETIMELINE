@@ -20,9 +20,33 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.SimpleTransactionStatus;
 
 @ExtendWith(MockitoExtension.class)
 class LikeServiceTest {
+
+	/**
+	 * REQUIRES_NEWでの実行を検証するための最小限のPlatformTransactionManager。
+	 * 実DBを使わない単体テストでは、TransactionTemplateがコールバックを実行し、
+	 * 例外発生時はそのまま呼び出し元に伝播することさえ確認できればよい。
+	 */
+	private static final PlatformTransactionManager NOOP_TRANSACTION_MANAGER = new PlatformTransactionManager() {
+		@Override
+		public TransactionStatus getTransaction(TransactionDefinition definition) {
+			return new SimpleTransactionStatus();
+		}
+
+		@Override
+		public void commit(TransactionStatus status) {
+		}
+
+		@Override
+		public void rollback(TransactionStatus status) {
+		}
+	};
 
 	@Mock
 	private LikeRepository likeRepository;
@@ -34,7 +58,7 @@ class LikeServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		likeService = new LikeService(likeRepository, postRepository);
+		likeService = new LikeService(likeRepository, postRepository, NOOP_TRANSACTION_MANAGER);
 	}
 
 	private static User userWithId(long id, String username) {
