@@ -139,8 +139,8 @@ describe('PostDetailPage', () => {
     const myCommentCard = screen.getByText('my comment').closest('.MuiPaper-root') as HTMLElement
     const othersCommentCard = screen.getByText('their comment').closest('.MuiPaper-root') as HTMLElement
 
-    expect(myCommentCard.querySelector('button')).not.toBeNull()
-    expect(othersCommentCard.querySelector('button')).toBeNull()
+    expect(within(myCommentCard).getByText('削除')).toBeInTheDocument()
+    expect(within(othersCommentCard).queryByText('削除')).not.toBeInTheDocument()
   })
 
   it('deletes own comment after confirming', async () => {

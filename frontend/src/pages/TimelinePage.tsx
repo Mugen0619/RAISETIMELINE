@@ -18,6 +18,7 @@ import AddIcon from '@mui/icons-material/Add'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { createPost, deletePost, fetchTimeline, toggleLike, type PostResponse } from '../api/posts'
+import { fetchFollowing, fetchUserPosts } from '../api/users'
 import { PostCard } from '../components/PostCard'
 import { PostComposerDialog } from '../components/PostComposerDialog'
 import { ConfirmDialog } from '../components/ConfirmDialog'
@@ -49,7 +50,7 @@ export function TimelinePage() {
     postsRef.current = posts
   }, [posts])
 
-  const loadInitial = useCallback(async () => {
+  const loadAllTimeline = useCallback(async () => {
     setIsLoadingInitial(true)
     setError(null)
     try {
@@ -65,13 +66,54 @@ export function TimelinePage() {
     }
   }, [])
 
+  // 「フォロー中」タイムライン専用のAPIは存在しないため、フォロー中ユーザー一覧を取得し、
+  // 各ユーザーの投稿(最初のページ分)をまとめて取得してマージ・新着順にソートする。
+  // 無限スクロールや新着投稿バナーはこのタブでは対象外(全体タブのみ)。
+  const loadFollowingTimeline = useCallback(async () => {
+    if (!user) return
+    setIsLoadingInitial(true)
+    setError(null)
+    try {
+      const followees = await fetchFollowing(user.userId)
+      if (followees.length === 0) {
+        setPosts([])
+        setHasMore(false)
+        return
+      }
+
+      const postsPerUser = await Promise.all(
+        followees.map((followee) =>
+          fetchUserPosts(followee.userId, 0, PAGE_SIZE).catch(() => ({
+            content: [] as PostResponse[],
+            page: { size: 0, number: 0, totalElements: 0, totalPages: 0 },
+          })),
+        ),
+      )
+      const merged = postsPerUser
+        .flatMap((result) => result.content)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+      setPosts(merged)
+      setHasMore(false)
+    } catch {
+      setError('タイムラインの取得に失敗しました。')
+    } finally {
+      setIsLoadingInitial(false)
+    }
+  }, [user])
+
   useEffect(() => {
-    loadInitial()
-  }, [loadInitial])
+    if (tab === 'all') {
+      loadAllTimeline()
+    } else {
+      loadFollowingTimeline()
+    }
+  }, [tab, loadAllTimeline, loadFollowingTimeline])
 
   const loadMore = useCallback(async () => {
     // 初回読み込み完了前はsentinelがビューポート内に入り得るため、
     // isLoadingInitialで初回フェッチと競合しないようにガードする
+    // (フォロー中タブはhasMoreを常にfalseにしているため、ここでは無限スクロールされない)
     if (isLoadingInitial || isLoadingMore || !hasMore) return
     setIsLoadingMore(true)
     try {
@@ -101,6 +143,10 @@ export function TimelinePage() {
   }, [loadMore])
 
   useEffect(() => {
+    // 新着投稿バナーは全体タブのみが対象(フォロー中タブは複数ユーザーの投稿をマージしており、
+    // 「先頭の投稿IDが変わったか」だけでは新着判定の意味が異なるため対象外とする)
+    if (tab !== 'all') return
+
     const timer = window.setInterval(async () => {
       try {
         const result = await fetchTimeline(0, 1)
@@ -115,10 +161,10 @@ export function TimelinePage() {
     }, NEW_POSTS_POLL_INTERVAL_MS)
 
     return () => window.clearInterval(timer)
-  }, [])
+  }, [tab])
 
   const handleRefreshToLatest = () => {
-    loadInitial()
+    loadAllTimeline()
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -129,7 +175,9 @@ export function TimelinePage() {
 
   const handleCreateSubmit = async (body: string) => {
     const created = await createPost(body)
-    setPosts((prev) => [created, ...prev])
+    if (tab === 'all') {
+      setPosts((prev) => [created, ...prev])
+    }
     setComposerOpen(false)
   }
 
@@ -164,7 +212,14 @@ export function TimelinePage() {
             タイムライン
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            component="button"
+            type="button"
+            onClick={() => user && navigate(`/users/${user.userId}`)}
+            variant="body2"
+            color="text.secondary"
+            sx={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+          >
             @{user?.username}
           </Typography>
           <Button size="small" color="inherit" onClick={handleLogout}>
@@ -204,7 +259,7 @@ export function TimelinePage() {
           </Stack>
         ) : posts.length === 0 ? (
           <Typography color="text.secondary" align="center" sx={{ paddingY: 6 }}>
-            まだ投稿がありません。
+            {tab === 'following' ? 'フォロー中のユーザーの投稿はまだありません。' : 'まだ投稿がありません。'}
           </Typography>
         ) : (
           <Stack spacing={1.5}>

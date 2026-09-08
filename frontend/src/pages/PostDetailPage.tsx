@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   AppBar,
-  Avatar,
   Box,
   CircularProgress,
   Container,
@@ -30,11 +29,12 @@ import {
   type CommentResponse,
   type PostResponse,
 } from '../api/posts'
-import { avatarColorFor } from '../utils/avatarColor'
 import { formatRelativeTime } from '../utils/relativeTime'
 import { PostComposerDialog } from '../components/PostComposerDialog'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { TextLinkButton } from '../components/TextLinkButton'
+import { ClickableAvatar } from '../components/ClickableAvatar'
+import { UserNameLink } from '../components/UserNameLink'
 
 const MAX_COMMENT_LENGTH = 280
 
@@ -173,12 +173,10 @@ export function PostDetailPage() {
 
         <Paper variant="outlined" sx={{ padding: 2, borderRadius: 3, marginBottom: 2 }}>
           <Stack direction="row" spacing={1.5}>
-            <Avatar sx={{ bgcolor: avatarColorFor(post.userId) }}>{post.displayName.charAt(0)}</Avatar>
+            <ClickableAvatar userId={post.userId} displayName={post.displayName} />
             <Box sx={{ minWidth: 0, flex: 1 }}>
               <Stack direction="row" spacing={0.75} alignItems="baseline" flexWrap="wrap">
-                <Typography component="span" fontWeight={700}>
-                  {post.displayName}
-                </Typography>
+                <UserNameLink userId={post.userId} displayName={post.displayName} fontSize={16} />
                 <Typography component="span" variant="body2" color="text.secondary" fontFamily="monospace">
                   @{post.username}
                 </Typography>
@@ -256,14 +254,10 @@ export function PostDetailPage() {
             comments.map((comment) => (
               <Paper key={comment.id} variant="outlined" sx={{ padding: 1.5, borderRadius: 3 }}>
                 <Stack direction="row" spacing={1.5}>
-                  <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: avatarColorFor(comment.userId) }}>
-                    {comment.displayName.charAt(0)}
-                  </Avatar>
+                  <ClickableAvatar userId={comment.userId} displayName={comment.displayName} size={32} />
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Stack direction="row" spacing={0.75} alignItems="baseline">
-                      <Typography component="span" fontWeight={700} fontSize={13.5}>
-                        {comment.displayName}
-                      </Typography>
+                      <UserNameLink userId={comment.userId} displayName={comment.displayName} fontSize={13.5} />
                       <Typography component="span" variant="body2" color="text.secondary" fontFamily="monospace" fontSize={12}>
                         ・{formatRelativeTime(comment.createdAt)}
                       </Typography>

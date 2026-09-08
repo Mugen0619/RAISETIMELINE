@@ -5,14 +5,19 @@ import { MemoryRouter } from 'react-router-dom'
 import { TimelinePage } from './TimelinePage'
 import { AuthProvider } from '../auth/AuthContext'
 import * as postsApi from '../api/posts'
+import * as usersApi from '../api/users'
 import type { PostResponse, TimelinePage as TimelinePageResponse } from '../api/posts'
+import type { FollowUserResponse } from '../api/users'
 
 vi.mock('../api/posts')
+vi.mock('../api/users')
 
 const mockedFetchTimeline = vi.mocked(postsApi.fetchTimeline)
 const mockedCreatePost = vi.mocked(postsApi.createPost)
 const mockedDeletePost = vi.mocked(postsApi.deletePost)
 const mockedToggleLike = vi.mocked(postsApi.toggleLike)
+const mockedFetchFollowing = vi.mocked(usersApi.fetchFollowing)
+const mockedFetchUserPosts = vi.mocked(usersApi.fetchUserPosts)
 
 function makePost(overrides: Partial<PostResponse> = {}): PostResponse {
   return {
@@ -34,6 +39,17 @@ function page(content: PostResponse[], opts: { number?: number; totalPages?: num
   return {
     content,
     page: { size: 20, number: opts.number ?? 0, totalElements: content.length, totalPages: opts.totalPages ?? 1 },
+  }
+}
+
+function makeFollowUser(overrides: Partial<FollowUserResponse> = {}): FollowUserResponse {
+  return {
+    userId: 2,
+    username: 'someone',
+    displayName: 'Someone',
+    avatarUrl: null,
+    followedByMe: true,
+    ...overrides,
   }
 }
 
@@ -188,5 +204,38 @@ describe('TimelinePage', () => {
 
     await vi.waitFor(() => expect(screen.getByText('second post')).toBeInTheDocument())
     expect(mockedFetchTimeline).toHaveBeenCalledTimes(3)
+  })
+
+  it('shows only posts from followed users on the following tab', async () => {
+    const user = userEvent.setup()
+    mockedFetchTimeline.mockResolvedValue(page([makePost({ id: 1, body: 'global post' })]))
+    mockedFetchFollowing.mockResolvedValue([makeFollowUser({ userId: 2 })])
+    mockedFetchUserPosts.mockResolvedValue(
+      page([makePost({ id: 9, userId: 2, username: 'someone', displayName: 'Someone', body: 'followed post' })]),
+    )
+
+    renderTimelinePage()
+    await screen.findByText('global post')
+
+    await user.click(screen.getByRole('tab', { name: 'フォロー中' }))
+
+    expect(await screen.findByText('followed post')).toBeInTheDocument()
+    expect(screen.queryByText('global post')).not.toBeInTheDocument()
+    expect(mockedFetchFollowing).toHaveBeenCalledWith(1)
+    expect(mockedFetchUserPosts).toHaveBeenCalledWith(2, 0, 20)
+  })
+
+  it('shows an empty state when not following anyone', async () => {
+    const user = userEvent.setup()
+    mockedFetchTimeline.mockResolvedValue(page([makePost({ id: 1, body: 'global post' })]))
+    mockedFetchFollowing.mockResolvedValue([])
+
+    renderTimelinePage()
+    await screen.findByText('global post')
+
+    await user.click(screen.getByRole('tab', { name: 'フォロー中' }))
+
+    expect(await screen.findByText('フォロー中のユーザーの投稿はまだありません。')).toBeInTheDocument()
+    expect(mockedFetchUserPosts).not.toHaveBeenCalled()
   })
 })
