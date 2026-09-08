@@ -24,6 +24,7 @@ function renderCard(post: PostResponse, isOwner: boolean, onDelete = vi.fn(), on
       <Routes>
         <Route path="/home" element={<PostCard post={post} isOwner={isOwner} onDelete={onDelete} onToggleLike={onToggleLike} />} />
         <Route path="/posts/:id" element={<div>投稿詳細ページ</div>} />
+        <Route path="/users/:userId" element={<div>プロフィールページ</div>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -77,5 +78,22 @@ describe('PostCard', () => {
 
     await user.click(screen.getByText('hello world'))
     expect(await screen.findByText('投稿詳細ページ')).toBeInTheDocument()
+  })
+
+  it('navigates to the profile page when the author name is clicked, not the post detail page', async () => {
+    const user = userEvent.setup()
+    renderCard(basePost, false)
+
+    await user.click(screen.getByText('Alice'))
+    expect(await screen.findByText('プロフィールページ')).toBeInTheDocument()
+    expect(screen.queryByText('投稿詳細ページ')).not.toBeInTheDocument()
+  })
+
+  it('navigates to the profile page when the avatar is clicked', async () => {
+    const user = userEvent.setup()
+    renderCard(basePost, false)
+
+    await user.click(screen.getByRole('button', { name: 'Aliceのプロフィール' }))
+    expect(await screen.findByText('プロフィールページ')).toBeInTheDocument()
   })
 })

@@ -5,6 +5,9 @@ import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { TimelinePage } from './pages/TimelinePage'
 import { PostDetailPage } from './pages/PostDetailPage'
+import { ProfilePage } from './pages/ProfilePage'
+import { ProfileEditPage } from './pages/ProfileEditPage'
+import { FollowListPage } from './pages/FollowListPage'
 
 function RootRedirect() {
   const { isAuthenticated } = useAuth()
@@ -19,6 +22,10 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/home" element={<TimelinePage />} />
         <Route path="/posts/:id" element={<PostDetailPage />} />
+        <Route path="/users/:userId" element={<ProfilePage />} />
+        <Route path="/users/:userId/edit" element={<ProfileEditPage />} />
+        <Route path="/users/:userId/following" element={<FollowListPage mode="following" />} />
+        <Route path="/users/:userId/followers" element={<FollowListPage mode="followers" />} />
       </Route>
       <Route path="/" element={<RootRedirect />} />
       <Route path="*" element={<RootRedirect />} />

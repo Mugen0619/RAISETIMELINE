@@ -17,7 +17,15 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { createPost, deletePost, fetchTimeline, toggleLike, type PostResponse } from '../api/posts'
+import {
+  createPost,
+  deletePost,
+  fetchFollowingTimeline,
+  fetchTimeline,
+  toggleLike,
+  type PostResponse,
+  type TimelinePage as TimelinePageResponse,
+} from '../api/posts'
 import { PostCard } from '../components/PostCard'
 import { PostComposerDialog } from '../components/PostComposerDialog'
 import { ConfirmDialog } from '../components/ConfirmDialog'
@@ -26,6 +34,10 @@ const PAGE_SIZE = 20
 const NEW_POSTS_POLL_INTERVAL_MS = 30000
 
 type TabValue = 'all' | 'following'
+
+function fetchTimelineForTab(tab: TabValue, page: number, size: number): Promise<TimelinePageResponse> {
+  return tab === 'all' ? fetchTimeline(page, size) : fetchFollowingTimeline(page, size)
+}
 
 export function TimelinePage() {
   const navigate = useNavigate()
@@ -53,7 +65,7 @@ export function TimelinePage() {
     setIsLoadingInitial(true)
     setError(null)
     try {
-      const result = await fetchTimeline(0, PAGE_SIZE)
+      const result = await fetchTimelineForTab(tab, 0, PAGE_SIZE)
       setPosts(result.content)
       setNextPage(1)
       setHasMore(result.page.number + 1 < result.page.totalPages)
@@ -63,7 +75,7 @@ export function TimelinePage() {
     } finally {
       setIsLoadingInitial(false)
     }
-  }, [])
+  }, [tab])
 
   useEffect(() => {
     loadInitial()
@@ -75,7 +87,7 @@ export function TimelinePage() {
     if (isLoadingInitial || isLoadingMore || !hasMore) return
     setIsLoadingMore(true)
     try {
-      const result = await fetchTimeline(nextPage, PAGE_SIZE)
+      const result = await fetchTimelineForTab(tab, nextPage, PAGE_SIZE)
       setPosts((prev) => [...prev, ...result.content])
       setNextPage((page) => page + 1)
       setHasMore(result.page.number + 1 < result.page.totalPages)
@@ -84,7 +96,7 @@ export function TimelinePage() {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [nextPage, hasMore, isLoadingMore, isLoadingInitial])
+  }, [tab, nextPage, hasMore, isLoadingMore, isLoadingInitial])
 
   useEffect(() => {
     const node = sentinelRef.current
@@ -103,7 +115,7 @@ export function TimelinePage() {
   useEffect(() => {
     const timer = window.setInterval(async () => {
       try {
-        const result = await fetchTimeline(0, 1)
+        const result = await fetchTimelineForTab(tab, 0, 1)
         const latest = result.content[0]
         const currentTop = postsRef.current[0]
         if (latest && (!currentTop || latest.id !== currentTop.id)) {
@@ -115,7 +127,7 @@ export function TimelinePage() {
     }, NEW_POSTS_POLL_INTERVAL_MS)
 
     return () => window.clearInterval(timer)
-  }, [])
+  }, [tab])
 
   const handleRefreshToLatest = () => {
     loadInitial()
@@ -129,7 +141,9 @@ export function TimelinePage() {
 
   const handleCreateSubmit = async (body: string) => {
     const created = await createPost(body)
-    setPosts((prev) => [created, ...prev])
+    if (tab === 'all') {
+      setPosts((prev) => [created, ...prev])
+    }
     setComposerOpen(false)
   }
 
@@ -164,7 +178,14 @@ export function TimelinePage() {
             タイムライン
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            component="button"
+            type="button"
+            onClick={() => user && navigate(`/users/${user.userId}`)}
+            variant="body2"
+            color="text.secondary"
+            sx={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+          >
             @{user?.username}
           </Typography>
           <Button size="small" color="inherit" onClick={handleLogout}>
@@ -204,7 +225,7 @@ export function TimelinePage() {
           </Stack>
         ) : posts.length === 0 ? (
           <Typography color="text.secondary" align="center" sx={{ paddingY: 6 }}>
-            まだ投稿がありません。
+            {tab === 'following' ? 'フォロー中のユーザーの投稿はまだありません。' : 'まだ投稿がありません。'}
           </Typography>
         ) : (
           <Stack spacing={1.5}>
