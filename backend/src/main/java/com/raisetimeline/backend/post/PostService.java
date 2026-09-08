@@ -1,6 +1,7 @@
 package com.raisetimeline.backend.post;
 
 import com.raisetimeline.backend.comment.CommentRepository;
+import com.raisetimeline.backend.follow.FollowRepository;
 import com.raisetimeline.backend.like.LikeRepository;
 import com.raisetimeline.backend.user.User;
 import com.raisetimeline.backend.user.UserNotFoundException;
@@ -22,13 +23,15 @@ public class PostService {
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
 	private final UserRepository userRepository;
+	private final FollowRepository followRepository;
 
 	public PostService(PostRepository postRepository, CommentRepository commentRepository,
-			LikeRepository likeRepository, UserRepository userRepository) {
+			LikeRepository likeRepository, UserRepository userRepository, FollowRepository followRepository) {
 		this.postRepository = postRepository;
 		this.commentRepository = commentRepository;
 		this.likeRepository = likeRepository;
 		this.userRepository = userRepository;
+		this.followRepository = followRepository;
 	}
 
 	@Transactional
@@ -41,6 +44,17 @@ public class PostService {
 	@Transactional(readOnly = true)
 	public Page<PostResponse> getTimeline(Pageable pageable, Long currentUserId) {
 		return mapWithCounts(postRepository.findAll(pageable), currentUserId);
+	}
+
+	@Transactional(readOnly = true)
+	public Page<PostResponse> getFollowingTimeline(Long currentUserId, Pageable pageable) {
+		List<Long> followeeIds = followRepository.findFolloweeIdsByFollowerId(currentUserId);
+
+		if (followeeIds.isEmpty()) {
+			return Page.empty(pageable);
+		}
+
+		return mapWithCounts(postRepository.findByUserIdIn(followeeIds, pageable), currentUserId);
 	}
 
 	@Transactional(readOnly = true)

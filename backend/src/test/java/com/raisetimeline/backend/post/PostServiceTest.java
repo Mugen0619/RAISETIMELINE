@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.raisetimeline.backend.comment.CommentRepository;
+import com.raisetimeline.backend.follow.FollowRepository;
 import com.raisetimeline.backend.like.LikeRepository;
 import com.raisetimeline.backend.user.User;
 import com.raisetimeline.backend.user.UserNotFoundException;
@@ -43,11 +44,14 @@ class PostServiceTest {
 	@Mock
 	private UserRepository userRepository;
 
+	@Mock
+	private FollowRepository followRepository;
+
 	private PostService postService;
 
 	@BeforeEach
 	void setUp() {
-		postService = new PostService(postRepository, commentRepository, likeRepository, userRepository);
+		postService = new PostService(postRepository, commentRepository, likeRepository, userRepository, followRepository);
 	}
 
 	private static User userWithId(long id, String username) {
@@ -108,6 +112,39 @@ class PostServiceTest {
 		verify(commentRepository, never()).countGroupedByPostIds(any());
 		verify(likeRepository, never()).countGroupedByPostIds(any());
 		verify(likeRepository, never()).findLikedPostIds(anyLong(), any());
+	}
+
+	@Test
+	void getFollowingTimelineReturnsPostsFromFolloweesWithBulkCounts() {
+		User followee = userWithId(2L, "bob");
+		Post post = new Post(followee, "hello from bob");
+		ReflectionTestUtils.setField(post, "id", 100L);
+		Pageable pageable = PageRequest.of(0, 20);
+		when(followRepository.findFolloweeIdsByFollowerId(1L)).thenReturn(List.of(2L, 3L));
+		when(postRepository.findByUserIdIn(List.of(2L, 3L), pageable)).thenReturn(new PageImpl<>(List.of(post), pageable, 1));
+		when(commentRepository.countGroupedByPostIds(List.of(100L))).thenReturn(List.of(countOf(100L, 1)));
+		when(likeRepository.countGroupedByPostIds(List.of(100L))).thenReturn(List.of(countOf(100L, 4)));
+		when(likeRepository.findLikedPostIds(eq(1L), eq(List.of(100L)))).thenReturn(List.of());
+
+		var page = postService.getFollowingTimeline(1L, pageable);
+
+		assertThat(page.getTotalElements()).isEqualTo(1);
+		PostResponse response = page.getContent().get(0);
+		assertThat(response.username()).isEqualTo("bob");
+		assertThat(response.commentCount()).isEqualTo(1);
+		assertThat(response.likeCount()).isEqualTo(4);
+		assertThat(response.likedByMe()).isFalse();
+	}
+
+	@Test
+	void getFollowingTimelineReturnsEmptyPageWithoutQueryingPostsWhenNotFollowingAnyone() {
+		Pageable pageable = PageRequest.of(0, 20);
+		when(followRepository.findFolloweeIdsByFollowerId(1L)).thenReturn(List.of());
+
+		var page = postService.getFollowingTimeline(1L, pageable);
+
+		assertThat(page.getTotalElements()).isZero();
+		verify(postRepository, never()).findByUserIdIn(any(), any());
 	}
 
 	@Test
