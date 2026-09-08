@@ -3,6 +3,8 @@ package com.raisetimeline.backend.post;
 import com.raisetimeline.backend.comment.CommentRepository;
 import com.raisetimeline.backend.like.LikeRepository;
 import com.raisetimeline.backend.user.User;
+import com.raisetimeline.backend.user.UserNotFoundException;
+import com.raisetimeline.backend.user.UserRepository;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -19,12 +21,14 @@ public class PostService {
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
+	private final UserRepository userRepository;
 
 	public PostService(PostRepository postRepository, CommentRepository commentRepository,
-			LikeRepository likeRepository) {
+			LikeRepository likeRepository, UserRepository userRepository) {
 		this.postRepository = postRepository;
 		this.commentRepository = commentRepository;
 		this.likeRepository = likeRepository;
+		this.userRepository = userRepository;
 	}
 
 	@Transactional
@@ -36,7 +40,19 @@ public class PostService {
 
 	@Transactional(readOnly = true)
 	public Page<PostResponse> getTimeline(Pageable pageable, Long currentUserId) {
-		Page<Post> page = postRepository.findAll(pageable);
+		return mapWithCounts(postRepository.findAll(pageable), currentUserId);
+	}
+
+	@Transactional(readOnly = true)
+	public Page<PostResponse> getPostsByUser(Long profileUserId, Pageable pageable, Long currentUserId) {
+		if (!userRepository.existsById(profileUserId)) {
+			throw new UserNotFoundException("user not found: " + profileUserId);
+		}
+
+		return mapWithCounts(postRepository.findByUserId(profileUserId, pageable), currentUserId);
+	}
+
+	private Page<PostResponse> mapWithCounts(Page<Post> page, Long currentUserId) {
 		List<Long> postIds = page.getContent().stream().map(Post::getId).toList();
 
 		if (postIds.isEmpty()) {

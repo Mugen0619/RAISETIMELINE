@@ -12,6 +12,8 @@ import static org.mockito.Mockito.when;
 import com.raisetimeline.backend.comment.CommentRepository;
 import com.raisetimeline.backend.like.LikeRepository;
 import com.raisetimeline.backend.user.User;
+import com.raisetimeline.backend.user.UserNotFoundException;
+import com.raisetimeline.backend.user.UserRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -38,11 +40,14 @@ class PostServiceTest {
 	@Mock
 	private LikeRepository likeRepository;
 
+	@Mock
+	private UserRepository userRepository;
+
 	private PostService postService;
 
 	@BeforeEach
 	void setUp() {
-		postService = new PostService(postRepository, commentRepository, likeRepository);
+		postService = new PostService(postRepository, commentRepository, likeRepository, userRepository);
 	}
 
 	private static User userWithId(long id, String username) {
@@ -103,6 +108,35 @@ class PostServiceTest {
 		verify(commentRepository, never()).countGroupedByPostIds(any());
 		verify(likeRepository, never()).countGroupedByPostIds(any());
 		verify(likeRepository, never()).findLikedPostIds(anyLong(), any());
+	}
+
+	@Test
+	void getPostsByUserReturnsPageOfPostsWithBulkCounts() {
+		User author = userWithId(1L, "alice");
+		Post post = new Post(author, "hello world");
+		ReflectionTestUtils.setField(post, "id", 100L);
+		Pageable pageable = PageRequest.of(0, 20);
+		when(userRepository.existsById(1L)).thenReturn(true);
+		when(postRepository.findByUserId(1L, pageable)).thenReturn(new PageImpl<>(List.of(post), pageable, 1));
+		when(commentRepository.countGroupedByPostIds(List.of(100L))).thenReturn(List.of(countOf(100L, 1)));
+		when(likeRepository.countGroupedByPostIds(List.of(100L))).thenReturn(List.of(countOf(100L, 2)));
+		when(likeRepository.findLikedPostIds(eq(9L), eq(List.of(100L)))).thenReturn(List.of());
+
+		var page = postService.getPostsByUser(1L, pageable, 9L);
+
+		assertThat(page.getTotalElements()).isEqualTo(1);
+		assertThat(page.getContent().get(0).commentCount()).isEqualTo(1);
+		assertThat(page.getContent().get(0).likeCount()).isEqualTo(2);
+		assertThat(page.getContent().get(0).likedByMe()).isFalse();
+	}
+
+	@Test
+	void getPostsByUserThrowsNotFoundForUnknownUser() {
+		Pageable pageable = PageRequest.of(0, 20);
+		when(userRepository.existsById(999L)).thenReturn(false);
+
+		assertThatThrownBy(() -> postService.getPostsByUser(999L, pageable, 1L))
+				.isInstanceOf(UserNotFoundException.class);
 	}
 
 	@Test

@@ -84,6 +84,11 @@ public class User {
 		this.bio = bio;
 	}
 
+	public void updateProfile(String displayName, String bio) {
+		this.displayName = displayName;
+		this.bio = bio;
+	}
+
 	public String getAvatarUrl() {
 		return avatarUrl;
 	}
