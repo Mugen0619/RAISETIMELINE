@@ -17,8 +17,15 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { createPost, deletePost, fetchTimeline, toggleLike, type PostResponse } from '../api/posts'
-import { fetchFollowing, fetchUserPosts } from '../api/users'
+import {
+  createPost,
+  deletePost,
+  fetchFollowingTimeline,
+  fetchTimeline,
+  toggleLike,
+  type PostResponse,
+  type TimelinePage as TimelinePageResponse,
+} from '../api/posts'
 import { PostCard } from '../components/PostCard'
 import { PostComposerDialog } from '../components/PostComposerDialog'
 import { ConfirmDialog } from '../components/ConfirmDialog'
@@ -27,6 +34,10 @@ const PAGE_SIZE = 20
 const NEW_POSTS_POLL_INTERVAL_MS = 30000
 
 type TabValue = 'all' | 'following'
+
+function fetchTimelineForTab(tab: TabValue, page: number, size: number): Promise<TimelinePageResponse> {
+  return tab === 'all' ? fetchTimeline(page, size) : fetchFollowingTimeline(page, size)
+}
 
 export function TimelinePage() {
   const navigate = useNavigate()
@@ -50,11 +61,11 @@ export function TimelinePage() {
     postsRef.current = posts
   }, [posts])
 
-  const loadAllTimeline = useCallback(async () => {
+  const loadInitial = useCallback(async () => {
     setIsLoadingInitial(true)
     setError(null)
     try {
-      const result = await fetchTimeline(0, PAGE_SIZE)
+      const result = await fetchTimelineForTab(tab, 0, PAGE_SIZE)
       setPosts(result.content)
       setNextPage(1)
       setHasMore(result.page.number + 1 < result.page.totalPages)
@@ -64,60 +75,19 @@ export function TimelinePage() {
     } finally {
       setIsLoadingInitial(false)
     }
-  }, [])
-
-  // 「フォロー中」タイムライン専用のAPIは存在しないため、フォロー中ユーザー一覧を取得し、
-  // 各ユーザーの投稿(最初のページ分)をまとめて取得してマージ・新着順にソートする。
-  // 無限スクロールや新着投稿バナーはこのタブでは対象外(全体タブのみ)。
-  const loadFollowingTimeline = useCallback(async () => {
-    if (!user) return
-    setIsLoadingInitial(true)
-    setError(null)
-    try {
-      const followees = await fetchFollowing(user.userId)
-      if (followees.length === 0) {
-        setPosts([])
-        setHasMore(false)
-        return
-      }
-
-      const postsPerUser = await Promise.all(
-        followees.map((followee) =>
-          fetchUserPosts(followee.userId, 0, PAGE_SIZE).catch(() => ({
-            content: [] as PostResponse[],
-            page: { size: 0, number: 0, totalElements: 0, totalPages: 0 },
-          })),
-        ),
-      )
-      const merged = postsPerUser
-        .flatMap((result) => result.content)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-
-      setPosts(merged)
-      setHasMore(false)
-    } catch {
-      setError('タイムラインの取得に失敗しました。')
-    } finally {
-      setIsLoadingInitial(false)
-    }
-  }, [user])
+  }, [tab])
 
   useEffect(() => {
-    if (tab === 'all') {
-      loadAllTimeline()
-    } else {
-      loadFollowingTimeline()
-    }
-  }, [tab, loadAllTimeline, loadFollowingTimeline])
+    loadInitial()
+  }, [loadInitial])
 
   const loadMore = useCallback(async () => {
     // 初回読み込み完了前はsentinelがビューポート内に入り得るため、
     // isLoadingInitialで初回フェッチと競合しないようにガードする
-    // (フォロー中タブはhasMoreを常にfalseにしているため、ここでは無限スクロールされない)
     if (isLoadingInitial || isLoadingMore || !hasMore) return
     setIsLoadingMore(true)
     try {
-      const result = await fetchTimeline(nextPage, PAGE_SIZE)
+      const result = await fetchTimelineForTab(tab, nextPage, PAGE_SIZE)
       setPosts((prev) => [...prev, ...result.content])
       setNextPage((page) => page + 1)
       setHasMore(result.page.number + 1 < result.page.totalPages)
@@ -126,7 +96,7 @@ export function TimelinePage() {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [nextPage, hasMore, isLoadingMore, isLoadingInitial])
+  }, [tab, nextPage, hasMore, isLoadingMore, isLoadingInitial])
 
   useEffect(() => {
     const node = sentinelRef.current
@@ -143,13 +113,9 @@ export function TimelinePage() {
   }, [loadMore])
 
   useEffect(() => {
-    // 新着投稿バナーは全体タブのみが対象(フォロー中タブは複数ユーザーの投稿をマージしており、
-    // 「先頭の投稿IDが変わったか」だけでは新着判定の意味が異なるため対象外とする)
-    if (tab !== 'all') return
-
     const timer = window.setInterval(async () => {
       try {
-        const result = await fetchTimeline(0, 1)
+        const result = await fetchTimelineForTab(tab, 0, 1)
         const latest = result.content[0]
         const currentTop = postsRef.current[0]
         if (latest && (!currentTop || latest.id !== currentTop.id)) {
@@ -164,7 +130,7 @@ export function TimelinePage() {
   }, [tab])
 
   const handleRefreshToLatest = () => {
-    loadAllTimeline()
+    loadInitial()
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 

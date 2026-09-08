@@ -61,6 +61,10 @@ export async function fetchTimeline(page: number, size: number): Promise<Timelin
   return apiRequest<TimelinePage>(`/posts?page=${page}&size=${size}`, { method: 'GET' })
 }
 
+export async function fetchFollowingTimeline(page: number, size: number): Promise<TimelinePage> {
+  return apiRequest<TimelinePage>(`/timeline/following?page=${page}&size=${size}`, { method: 'GET' })
+}
+
 export async function fetchPostDetail(id: number): Promise<PostResponse> {
   return apiRequest<PostResponse>(`/posts/${id}`, { method: 'GET' })
 }
