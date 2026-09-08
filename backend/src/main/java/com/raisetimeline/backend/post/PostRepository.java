@@ -1,5 +1,6 @@
 package com.raisetimeline.backend.post;
 
+import java.util.Collection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -13,4 +14,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
 	@EntityGraph(attributePaths = "user")
 	Page<Post> findByUserId(Long userId, Pageable pageable);
+
+	@EntityGraph(attributePaths = "user")
+	Page<Post> findByUserIdIn(Collection<Long> userIds, Pageable pageable);
 }
