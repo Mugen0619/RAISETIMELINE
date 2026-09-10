@@ -8,6 +8,7 @@ import { PostDetailPage } from './pages/PostDetailPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { ProfileEditPage } from './pages/ProfileEditPage'
 import { FollowListPage } from './pages/FollowListPage'
+import { UserSearchPage } from './pages/UserSearchPage'
 
 function RootRedirect() {
   const { isAuthenticated } = useAuth()
@@ -26,6 +27,7 @@ function App() {
         <Route path="/users/:userId/edit" element={<ProfileEditPage />} />
         <Route path="/users/:userId/following" element={<FollowListPage mode="following" />} />
         <Route path="/users/:userId/followers" element={<FollowListPage mode="followers" />} />
+        <Route path="/search" element={<UserSearchPage />} />
       </Route>
       <Route path="/" element={<RootRedirect />} />
       <Route path="*" element={<RootRedirect />} />

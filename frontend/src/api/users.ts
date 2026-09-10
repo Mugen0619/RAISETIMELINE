@@ -28,6 +28,13 @@ export interface FollowResponse {
   followerCount: number
 }
 
+export interface UserSummaryResponse {
+  userId: number
+  username: string
+  displayName: string
+  avatarUrl: string | null
+}
+
 interface PageMeta {
   size: number
   number: number
@@ -45,9 +52,17 @@ export interface UserPostsPage {
   page: PageMeta
 }
 
+interface UserSearchPage {
+  content: UserSummaryResponse[]
+  page: PageMeta
+}
+
 // フォロー一覧・フォロワー一覧の追加ページネーションは現状不要なため、
 // 想定件数を十分カバーできるサイズで1ページのみ取得する
 const FOLLOW_LIST_PAGE_SIZE = 100
+
+// 検索結果は1ページ分のみ取得する(絞り込みはキーワードの再入力を想定)
+const USER_SEARCH_PAGE_SIZE = 20
 
 export async function fetchProfile(userId: number): Promise<ProfileResponse> {
   return apiRequest<ProfileResponse>(`/users/${userId}`, { method: 'GET' })
@@ -83,4 +98,12 @@ export async function fetchFollowers(userId: number): Promise<FollowUserResponse
 
 export async function fetchUserPosts(userId: number, page: number, size: number): Promise<UserPostsPage> {
   return apiRequest<UserPostsPage>(`/users/${userId}/posts?page=${page}&size=${size}`, { method: 'GET' })
+}
+
+export async function searchUsers(keyword: string): Promise<UserSummaryResponse[]> {
+  const result = await apiRequest<UserSearchPage>(
+    `/users/search?q=${encodeURIComponent(keyword)}&page=0&size=${USER_SEARCH_PAGE_SIZE}`,
+    { method: 'GET' },
+  )
+  return result.content
 }

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { TimelinePage } from './TimelinePage'
 import { AuthProvider } from '../auth/AuthContext'
 import * as postsApi from '../api/posts'
@@ -47,6 +47,23 @@ function renderTimelinePage() {
     <MemoryRouter>
       <AuthProvider>
         <TimelinePage />
+      </AuthProvider>
+    </MemoryRouter>,
+  )
+}
+
+function renderTimelinePageWithRoutes() {
+  localStorage.setItem('accessToken', 'test-token')
+  localStorage.setItem('refreshToken', 'test-refresh')
+  localStorage.setItem('authUser', JSON.stringify({ userId: 1, username: 'me', displayName: 'Me' }))
+
+  return render(
+    <MemoryRouter initialEntries={['/home']}>
+      <AuthProvider>
+        <Routes>
+          <Route path="/home" element={<TimelinePage />} />
+          <Route path="/search" element={<div>検索ページ</div>} />
+        </Routes>
       </AuthProvider>
     </MemoryRouter>,
   )
@@ -239,5 +256,17 @@ describe('TimelinePage', () => {
 
     expect(await screen.findByText('global post')).toBeInTheDocument()
     expect(screen.queryByText('followed post')).not.toBeInTheDocument()
+  })
+
+  it('navigates to the user search page from the header search button', async () => {
+    const user = userEvent.setup()
+    mockedFetchTimeline.mockResolvedValue(page([]))
+
+    renderTimelinePageWithRoutes()
+    await screen.findByText('まだ投稿がありません。')
+
+    await user.click(screen.getByRole('button', { name: 'ユーザー検索' }))
+
+    expect(await screen.findByText('検索ページ')).toBeInTheDocument()
   })
 })

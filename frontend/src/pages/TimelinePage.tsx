@@ -6,6 +6,7 @@ import {
   CircularProgress,
   Container,
   Fab,
+  IconButton,
   Paper,
   Snackbar,
   Stack,
@@ -15,6 +16,7 @@ import {
   Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
+import SearchIcon from '@mui/icons-material/Search'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import {
@@ -178,6 +180,9 @@ export function TimelinePage() {
             タイムライン
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
+          <IconButton size="small" onClick={() => navigate('/search')} aria-label="ユーザー検索">
+            <SearchIcon fontSize="small" />
+          </IconButton>
           <Typography
             component="button"
             type="button"
