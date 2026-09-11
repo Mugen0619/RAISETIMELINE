@@ -54,7 +54,7 @@ class LikeIntegrationTest {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setBearerAuth(ownerToken);
 		ResponseEntity<PostResponse> created = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, new HttpEntity<>(new PostRequest(body), headers), PostResponse.class);
+				url("/api/posts"), HttpMethod.POST, new HttpEntity<>(new PostRequest(body, null), headers), PostResponse.class);
 		return created.getBody().id();
 	}
 

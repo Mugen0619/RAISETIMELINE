@@ -25,7 +25,7 @@ public class Post {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@Column(nullable = false, length = 280)
+	@Column(length = 280)
 	private String body;
 
 	@Column(name = "created_at", nullable = false, updatable = false)

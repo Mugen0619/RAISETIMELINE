@@ -62,7 +62,7 @@ class PostControllerTest {
 
 	private static PostResponse postResponse(Long id, Long userId, String username, String displayName, String body) {
 		Instant now = Instant.now();
-		return new PostResponse(id, userId, username, displayName, body, now, now, 0, 0, false);
+		return new PostResponse(id, userId, username, displayName, body, now, now, 0, 0, false, List.of());
 	}
 
 	@Test
@@ -74,20 +74,22 @@ class PostControllerTest {
 		mockMvc.perform(post("/api/posts")
 						.with(authentication(authOf(author)))
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(new PostRequest("hello world"))))
+						.content(objectMapper.writeValueAsString(new PostRequest("hello world", null))))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.id", is(100)))
 				.andExpect(jsonPath("$.body", is("hello world")));
 	}
 
 	@Test
-	void createPostReturns400ForBlankBody() throws Exception {
+	void createPostReturns400WhenServiceRejectsEmptyPostContent() throws Exception {
 		User author = userWithId(1L, "alice");
+		when(postService.createPost(eq(author), any(PostRequest.class)))
+				.thenThrow(new InvalidPostContentException("a post must have a body or at least one image"));
 
 		mockMvc.perform(post("/api/posts")
 						.with(authentication(authOf(author)))
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(new PostRequest(""))))
+						.content(objectMapper.writeValueAsString(new PostRequest("", null))))
 				.andExpect(status().isBadRequest());
 	}
 
@@ -99,7 +101,7 @@ class PostControllerTest {
 		mockMvc.perform(post("/api/posts")
 						.with(authentication(authOf(author)))
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(new PostRequest(tooLong))))
+						.content(objectMapper.writeValueAsString(new PostRequest(tooLong, null))))
 				.andExpect(status().isBadRequest());
 	}
 
@@ -120,7 +122,7 @@ class PostControllerTest {
 	void getPostReturnsPostWithCounts() throws Exception {
 		User author = userWithId(1L, "alice");
 		Instant now = Instant.now();
-		PostResponse response = new PostResponse(100L, 1L, "alice", "Alice", "hello world", now, now, 3, 5, true);
+		PostResponse response = new PostResponse(100L, 1L, "alice", "Alice", "hello world", now, now, 3, 5, true, List.of());
 		when(postService.getPost(100L, 1L)).thenReturn(response);
 
 		mockMvc.perform(get("/api/posts/{id}", 100L).with(authentication(authOf(author))))
@@ -148,7 +150,7 @@ class PostControllerTest {
 		mockMvc.perform(put("/api/posts/{id}", 100L)
 						.with(authentication(authOf(author)))
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(new PostRequest("updated body"))))
+						.content(objectMapper.writeValueAsString(new PostRequest("updated body", null))))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.body", is("updated body")));
 	}
@@ -162,7 +164,7 @@ class PostControllerTest {
 		mockMvc.perform(put("/api/posts/{id}", 100L)
 						.with(authentication(authOf(otherUser)))
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(new PostRequest("hijacked"))))
+						.content(objectMapper.writeValueAsString(new PostRequest("hijacked", null))))
 				.andExpect(status().isForbidden());
 	}
 
@@ -175,7 +177,7 @@ class PostControllerTest {
 		mockMvc.perform(put("/api/posts/{id}", 999L)
 						.with(authentication(authOf(author)))
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(new PostRequest("body"))))
+						.content(objectMapper.writeValueAsString(new PostRequest("body", null))))
 				.andExpect(status().isNotFound());
 	}
 

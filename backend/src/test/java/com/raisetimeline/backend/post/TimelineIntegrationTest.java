@@ -65,7 +65,7 @@ class TimelineIntegrationTest {
 
 	private Long createPost(String body, String token) {
 		ResponseEntity<PostResponse> response = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest(body), token), PostResponse.class);
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest(body, null), token), PostResponse.class);
 		return response.getBody().id();
 	}
 

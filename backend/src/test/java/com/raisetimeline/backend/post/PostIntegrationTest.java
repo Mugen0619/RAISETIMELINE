@@ -73,7 +73,7 @@ class PostIntegrationTest {
 		String token = registerAndGetAccessToken("alice");
 
 		ResponseEntity<PostResponse> response = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("hello world"), token), PostResponse.class);
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("hello world", null), token), PostResponse.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		assertThat(response.getBody()).isNotNull();
@@ -88,18 +88,18 @@ class PostIntegrationTest {
 		String token = registerAndGetAccessToken("bob");
 
 		ResponseEntity<String> blank = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest(""), token), String.class);
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("", null), token), String.class);
 		assertThat(blank.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
 		ResponseEntity<String> tooLong = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("a".repeat(281)), token), String.class);
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("a".repeat(281), null), token), String.class);
 		assertThat(tooLong.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 	}
 
 	@Test
 	void createPostRequiresAuthentication() {
 		ResponseEntity<String> response = restTemplate.postForEntity(
-				url("/api/posts"), new PostRequest("hello"), String.class);
+				url("/api/posts"), new PostRequest("hello", null), String.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
@@ -109,7 +109,7 @@ class PostIntegrationTest {
 		String token = registerAndGetAccessToken("carol");
 
 		for (String body : List.of("first post", "second post", "third post")) {
-			restTemplate.exchange(url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest(body), token), PostResponse.class);
+			restTemplate.exchange(url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest(body, null), token), PostResponse.class);
 			Thread.sleep(5);
 		}
 
@@ -137,18 +137,18 @@ class PostIntegrationTest {
 		String otherToken = registerAndGetAccessToken("erin");
 
 		ResponseEntity<PostResponse> created = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("original body"), ownerToken), PostResponse.class);
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("original body", null), ownerToken), PostResponse.class);
 		Long postId = created.getBody().id();
 		Thread.sleep(5);
 
 		ResponseEntity<PostResponse> ownerUpdate = restTemplate.exchange(
-				url("/api/posts/" + postId), HttpMethod.PUT, authedBody(new PostRequest("updated body"), ownerToken), PostResponse.class);
+				url("/api/posts/" + postId), HttpMethod.PUT, authedBody(new PostRequest("updated body", null), ownerToken), PostResponse.class);
 		assertThat(ownerUpdate.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(ownerUpdate.getBody().body()).isEqualTo("updated body");
 		assertThat(ownerUpdate.getBody().updatedAt()).isAfter(created.getBody().updatedAt());
 
 		ResponseEntity<String> otherUpdate = restTemplate.exchange(
-				url("/api/posts/" + postId), HttpMethod.PUT, authedBody(new PostRequest("hijacked"), otherToken), String.class);
+				url("/api/posts/" + postId), HttpMethod.PUT, authedBody(new PostRequest("hijacked", null), otherToken), String.class);
 		assertThat(otherUpdate.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 
 		assertThat(postRepository.findById(postId).orElseThrow().getBody()).isEqualTo("updated body");
@@ -160,7 +160,7 @@ class PostIntegrationTest {
 		String otherToken = registerAndGetAccessToken("grace");
 
 		ResponseEntity<PostResponse> created = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("to be deleted"), ownerToken), PostResponse.class);
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("to be deleted", null), ownerToken), PostResponse.class);
 		Long postId = created.getBody().id();
 
 		ResponseEntity<String> otherDelete = restTemplate.exchange(
@@ -180,7 +180,7 @@ class PostIntegrationTest {
 		String otherToken = registerAndGetAccessToken("judy");
 
 		ResponseEntity<PostResponse> created = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("detail post"), ownerToken), PostResponse.class);
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("detail post", null), ownerToken), PostResponse.class);
 		Long postId = created.getBody().id();
 
 		restTemplate.exchange(url("/api/posts/" + postId + "/comments"), HttpMethod.POST,
@@ -212,7 +212,7 @@ class PostIntegrationTest {
 		String otherToken = registerAndGetAccessToken("mike");
 
 		ResponseEntity<PostResponse> created = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("to be deleted with children"), ownerToken), PostResponse.class);
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("to be deleted with children", null), ownerToken), PostResponse.class);
 		Long postId = created.getBody().id();
 
 		restTemplate.exchange(url("/api/posts/" + postId + "/comments"), HttpMethod.POST,
@@ -228,11 +228,116 @@ class PostIntegrationTest {
 	}
 
 	@Test
+	void createPostRejectsMoreThanFourImageUrls() {
+		String token = registerAndGetAccessToken("nathan");
+		List<String> fiveImageUrls = List.of(
+				"https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/1.jpg",
+				"https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/2.jpg",
+				"https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/3.jpg",
+				"https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/4.jpg",
+				"https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/5.jpg");
+
+		ResponseEntity<String> response = restTemplate.exchange(
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("too many images", fiveImageUrls), token), String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+	}
+
+	@Test
+	void createPostRejectsImageUrlNotFromConfiguredBucket() {
+		String token = registerAndGetAccessToken("olivia");
+		List<String> untrustedUrls = List.of("https://evil.example.com/image.png");
+
+		ResponseEntity<String> response = restTemplate.exchange(
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("untrusted image", untrustedUrls), token), String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+	}
+
+	@Test
+	void createPostRejectsEmptyBodyAndNoImages() {
+		String token = registerAndGetAccessToken("peter");
+
+		ResponseEntity<String> response = restTemplate.exchange(
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("", null), token), String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+	}
+
+	@Test
+	void createPostWithTrustedImageUrlsPersistsAndReturnsThemInOrder() {
+		String token = registerAndGetAccessToken("quinn");
+		List<String> imageUrls = List.of(
+				"https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/a.jpg",
+				"https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/b.jpg");
+
+		ResponseEntity<PostResponse> created = restTemplate.exchange(
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("with images", imageUrls), token), PostResponse.class);
+
+		assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+		assertThat(created.getBody().imageUrls()).containsExactlyElementsOf(imageUrls);
+
+		ResponseEntity<PostResponse> fetched = restTemplate.exchange(
+				url("/api/posts/" + created.getBody().id()), HttpMethod.GET, authedNoBody(token), PostResponse.class);
+		assertThat(fetched.getBody().imageUrls()).containsExactlyElementsOf(imageUrls);
+	}
+
+	@Test
+	void createPostWithoutBodyButWithImagesPersistsSuccessfully() {
+		String token = registerAndGetAccessToken("robert");
+		List<String> imageUrls = List.of("https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/only.jpg");
+
+		ResponseEntity<PostResponse> created = restTemplate.exchange(
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest(null, imageUrls), token), PostResponse.class);
+
+		assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+		assertThat(created.getBody().body()).isNull();
+		assertThat(created.getBody().imageUrls()).containsExactlyElementsOf(imageUrls);
+		assertThat(postRepository.findById(created.getBody().id())).isPresent();
+	}
+
+	@Test
+	void deletingPostCascadesToItsImages() {
+		String token = registerAndGetAccessToken("rachel");
+		List<String> imageUrls = List.of("https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/c.jpg");
+
+		ResponseEntity<PostResponse> created = restTemplate.exchange(
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("to be deleted", imageUrls), token), PostResponse.class);
+		Long postId = created.getBody().id();
+
+		ResponseEntity<Void> delete = restTemplate.exchange(
+				url("/api/posts/" + postId), HttpMethod.DELETE, authedNoBody(token), Void.class);
+
+		assertThat(delete.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+		ResponseEntity<String> afterDelete = restTemplate.exchange(
+				url("/api/posts/" + postId), HttpMethod.GET, authedNoBody(token), String.class);
+		assertThat(afterDelete.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
+
+	@Test
+	void updatePostReplacesImagesWithNewOnes() {
+		String token = registerAndGetAccessToken("steve");
+		List<String> originalUrls = List.of("https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/old.jpg");
+		List<String> updatedUrls = List.of("https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/new.jpg");
+
+		ResponseEntity<PostResponse> created = restTemplate.exchange(
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("original", originalUrls), token), PostResponse.class);
+		Long postId = created.getBody().id();
+
+		ResponseEntity<PostResponse> updated = restTemplate.exchange(
+				url("/api/posts/" + postId), HttpMethod.PUT, authedBody(new PostRequest("updated", updatedUrls), token), PostResponse.class);
+
+		assertThat(updated.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(updated.getBody().imageUrls()).containsExactlyElementsOf(updatedUrls);
+	}
+
+	@Test
 	void updateAndDeleteReturn404ForUnknownPost() {
 		String token = registerAndGetAccessToken("heidi");
 
 		ResponseEntity<String> update = restTemplate.exchange(
-				url("/api/posts/999999"), HttpMethod.PUT, authedBody(new PostRequest("body"), token), String.class);
+				url("/api/posts/999999"), HttpMethod.PUT, authedBody(new PostRequest("body", null), token), String.class);
 		assertThat(update.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 
 		ResponseEntity<String> delete = restTemplate.exchange(

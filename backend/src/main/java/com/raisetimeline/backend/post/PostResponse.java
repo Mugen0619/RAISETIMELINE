@@ -1,6 +1,7 @@
 package com.raisetimeline.backend.post;
 
 import java.time.Instant;
+import java.util.List;
 
 public record PostResponse(
 		Long id,
@@ -12,9 +13,10 @@ public record PostResponse(
 		Instant updatedAt,
 		long commentCount,
 		long likeCount,
-		boolean likedByMe) {
+		boolean likedByMe,
+		List<String> imageUrls) {
 
-	public static PostResponse from(Post post, long commentCount, long likeCount, boolean likedByMe) {
+	public static PostResponse from(Post post, long commentCount, long likeCount, boolean likedByMe, List<String> imageUrls) {
 		return new PostResponse(
 				post.getId(),
 				post.getUser().getId(),
@@ -25,6 +27,7 @@ public record PostResponse(
 				post.getUpdatedAt(),
 				commentCount,
 				likeCount,
-				likedByMe);
+				likedByMe,
+				imageUrls);
 	}
 }

@@ -25,6 +25,7 @@ repositories {
 
 ext {
 	jjwtVersion = '0.12.6'
+	awsSdkVersion = '2.54.16'
 }
 
 dependencies {
@@ -36,6 +37,9 @@ dependencies {
 	implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
 	runtimeOnly "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
 	runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
+
+	implementation platform("software.amazon.awssdk:bom:${awsSdkVersion}")
+	implementation 'software.amazon.awssdk:s3'
 
 	runtimeOnly 'org.postgresql:postgresql'
 
