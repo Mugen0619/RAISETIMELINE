@@ -6,7 +6,9 @@ import com.raisetimeline.backend.auth.InvalidRefreshTokenException;
 import com.raisetimeline.backend.comment.CommentNotFoundException;
 import com.raisetimeline.backend.comment.ForbiddenCommentAccessException;
 import com.raisetimeline.backend.follow.SelfFollowException;
+import com.raisetimeline.backend.image.InvalidImageException;
 import com.raisetimeline.backend.post.ForbiddenPostAccessException;
+import com.raisetimeline.backend.post.InvalidPostContentException;
 import com.raisetimeline.backend.post.PostNotFoundException;
 import com.raisetimeline.backend.profile.ForbiddenProfileAccessException;
 import com.raisetimeline.backend.user.UserNotFoundException;
@@ -88,5 +90,17 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiError> handleForbiddenProfileAccess(ForbiddenProfileAccessException ex) {
 		ApiError body = new ApiError(HttpStatus.FORBIDDEN.value(), "Forbidden", ex.getMessage());
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+	}
+
+	@ExceptionHandler(InvalidImageException.class)
+	public ResponseEntity<ApiError> handleInvalidImage(InvalidImageException ex) {
+		ApiError body = new ApiError(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage());
+		return ResponseEntity.badRequest().body(body);
+	}
+
+	@ExceptionHandler(InvalidPostContentException.class)
+	public ResponseEntity<ApiError> handleInvalidPostContent(InvalidPostContentException ex) {
+		ApiError body = new ApiError(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage());
+		return ResponseEntity.badRequest().body(body);
 	}
 }

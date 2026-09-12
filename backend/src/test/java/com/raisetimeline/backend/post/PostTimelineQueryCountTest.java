@@ -79,7 +79,7 @@ class PostTimelineQueryCountTest {
 		List<Long> postIds = new ArrayList<>();
 		for (int i = 0; i < POST_COUNT; i++) {
 			ResponseEntity<PostResponse> created = restTemplate.exchange(
-					url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest(bodyMarker + i), ownerToken), PostResponse.class);
+					url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest(bodyMarker + i, null), ownerToken), PostResponse.class);
 			postIds.add(created.getBody().id());
 		}
 

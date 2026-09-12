@@ -58,7 +58,7 @@ class CommentIntegrationTest {
 
 	private Long createPost(String ownerToken, String body) {
 		ResponseEntity<PostResponse> created = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest(body), ownerToken), PostResponse.class);
+				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest(body, null), ownerToken), PostResponse.class);
 		return created.getBody().id();
 	}
 

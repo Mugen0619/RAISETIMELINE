@@ -123,8 +123,8 @@ class ProfileIntegrationTest {
 		Registered alice = register("pgrace");
 		Registered bob = register("pheidi");
 
-		restTemplate.exchange(url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("alice post"), alice.token()), PostResponse.class);
-		restTemplate.exchange(url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("bob post"), bob.token()), PostResponse.class);
+		restTemplate.exchange(url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("alice post", null), alice.token()), PostResponse.class);
+		restTemplate.exchange(url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("bob post", null), bob.token()), PostResponse.class);
 
 		ResponseEntity<Map> response = restTemplate.exchange(
 				url("/api/users/" + alice.userId() + "/posts"), HttpMethod.GET, authedNoBody(alice.token()), Map.class);

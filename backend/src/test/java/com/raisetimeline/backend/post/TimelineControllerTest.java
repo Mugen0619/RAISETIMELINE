@@ -54,7 +54,7 @@ class TimelineControllerTest {
 	void getFollowingTimelineReturnsPagedContent() throws Exception {
 		User viewer = userWithId(1L, "alice");
 		Instant now = Instant.now();
-		PostResponse response = new PostResponse(100L, 2L, "bob", "Bob", "hello", now, now, 0, 0, false);
+		PostResponse response = new PostResponse(100L, 2L, "bob", "Bob", "hello", now, now, 0, 0, false, List.of());
 		var pageable = PageRequest.of(0, 20);
 		when(postService.getFollowingTimeline(eq(1L), any())).thenReturn(new PageImpl<>(List.of(response), pageable, 1));
 

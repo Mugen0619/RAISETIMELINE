@@ -1,0 +1,16 @@
+# Terraformのローカルキャッシュ(.terraform.lock.hclはプロバイダバージョン固定のためコミットする)
+.terraform/
+
+# state(シークレットアクセスキーを含む)は絶対にコミットしない
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# 変数ファイルに秘密情報を入れる場合に備えて除外(このプロジェクトでは現状未使用)
+*.tfvars
+*.tfvars.json
+
+# planの出力ファイル
+*.tfplan
+tfplan*

@@ -15,3 +15,12 @@ jwt:
   secret: test-only-secret-key-not-for-production-use-32bytes-min
   expiration-ms: 86400000
   refresh-expiration-ms: 1209600000
+
+aws:
+  region: ap-northeast-1
+  s3:
+    bucket-name: raisetimeline-test-bucket
+    access-key-id: test-only-access-key-id
+    secret-access-key: test-only-secret-access-key
+    public-base-url: https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com
+    presign-expiration-seconds: 300
