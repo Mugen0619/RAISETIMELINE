@@ -45,6 +45,7 @@ function makePost(overrides: Partial<PostResponse> = {}): PostResponse {
     commentCount: 0,
     likeCount: 0,
     likedByMe: false,
+    imageUrls: [],
     ...overrides,
   }
 }

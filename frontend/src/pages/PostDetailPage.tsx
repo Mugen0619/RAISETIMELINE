@@ -35,6 +35,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog'
 import { TextLinkButton } from '../components/TextLinkButton'
 import { ClickableAvatar } from '../components/ClickableAvatar'
 import { UserNameLink } from '../components/UserNameLink'
+import { PostImageGrid } from '../components/PostImageGrid'
 
 const MAX_COMMENT_LENGTH = 280
 
@@ -115,9 +116,9 @@ export function PostDetailPage() {
     }
   }
 
-  const handleEditSubmit = async (body: string) => {
+  const handleEditSubmit = async (body: string, imageUrls: string[]) => {
     if (!post) return
-    const updated = await updatePost(post.id, body)
+    const updated = await updatePost(post.id, body, imageUrls)
     setPost(updated)
     setEditOpen(false)
   }
@@ -187,6 +188,7 @@ export function PostDetailPage() {
               <Typography sx={{ marginTop: 1, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                 {post.body}
               </Typography>
+              <PostImageGrid imageUrls={post.imageUrls} />
 
               <Stack direction="row" spacing={0} alignItems="center" sx={{ marginTop: 1.5 }}>
                 <Stack direction="row" spacing={0.5} alignItems="center">
@@ -285,6 +287,7 @@ export function PostDetailPage() {
         open={editOpen}
         mode="edit"
         initialBody={post.body}
+        initialImageUrls={post.imageUrls}
         onClose={() => setEditOpen(false)}
         onSubmit={handleEditSubmit}
       />

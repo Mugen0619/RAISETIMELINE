@@ -141,8 +141,8 @@ export function TimelinePage() {
     navigate('/login', { replace: true })
   }
 
-  const handleCreateSubmit = async (body: string) => {
-    const created = await createPost(body)
+  const handleCreateSubmit = async (body: string, imageUrls: string[]) => {
+    const created = await createPost(body, imageUrls)
     if (tab === 'all') {
       setPosts((prev) => [created, ...prev])
     }

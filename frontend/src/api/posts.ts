@@ -11,6 +11,7 @@ export interface PostResponse {
   commentCount: number
   likeCount: number
   likedByMe: boolean
+  imageUrls: string[]
 }
 
 export interface CommentResponse {
@@ -50,10 +51,10 @@ interface CommentsPage {
 // 1投稿あたりの想定コメント数を十分カバーできるサイズで1ページのみ取得する
 const COMMENTS_PAGE_SIZE = 100
 
-export async function createPost(body: string): Promise<PostResponse> {
+export async function createPost(body: string, imageUrls: string[] = []): Promise<PostResponse> {
   return apiRequest<PostResponse>('/posts', {
     method: 'POST',
-    body: JSON.stringify({ body }),
+    body: JSON.stringify({ body, imageUrls }),
   })
 }
 
@@ -69,10 +70,10 @@ export async function fetchPostDetail(id: number): Promise<PostResponse> {
   return apiRequest<PostResponse>(`/posts/${id}`, { method: 'GET' })
 }
 
-export async function updatePost(id: number, body: string): Promise<PostResponse> {
+export async function updatePost(id: number, body: string, imageUrls: string[] = []): Promise<PostResponse> {
   return apiRequest<PostResponse>(`/posts/${id}`, {
     method: 'PUT',
-    body: JSON.stringify({ body }),
+    body: JSON.stringify({ body, imageUrls }),
   })
 }
 
