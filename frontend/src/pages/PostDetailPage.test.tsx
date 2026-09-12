@@ -29,6 +29,7 @@ function makePost(overrides: Partial<PostResponse> = {}): PostResponse {
     commentCount: 0,
     likeCount: 0,
     likedByMe: false,
+    imageUrls: [],
     ...overrides,
   }
 }
@@ -177,7 +178,7 @@ describe('PostDetailPage', () => {
     await user.paste('updated body')
     await user.click(screen.getByRole('button', { name: '更新する' }))
 
-    expect(mockedUpdatePost).toHaveBeenCalledWith(1, 'updated body')
+    expect(mockedUpdatePost).toHaveBeenCalledWith(1, 'updated body', [])
     expect(await screen.findByText('updated body')).toBeInTheDocument()
   })
 

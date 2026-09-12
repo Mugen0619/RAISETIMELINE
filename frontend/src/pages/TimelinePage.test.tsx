@@ -27,6 +27,7 @@ function makePost(overrides: Partial<PostResponse> = {}): PostResponse {
     commentCount: 0,
     likeCount: 0,
     likedByMe: false,
+    imageUrls: [],
     ...overrides,
   }
 }
@@ -143,7 +144,7 @@ describe('TimelinePage', () => {
     await user.paste('brand new post')
     await user.click(screen.getByRole('button', { name: '投稿する' }))
 
-    expect(mockedCreatePost).toHaveBeenCalledWith('brand new post')
+    expect(mockedCreatePost).toHaveBeenCalledWith('brand new post', [])
     expect(await screen.findByText('brand new post')).toBeInTheDocument()
     expect(screen.queryByPlaceholderText('いまどうしてる？(280文字まで)')).not.toBeInTheDocument()
   })

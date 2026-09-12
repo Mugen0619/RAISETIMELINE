@@ -30,3 +30,14 @@ Object.defineProperty(window, 'scrollTo', {
   writable: true,
   value: () => {},
 })
+
+// jsdomはURL.createObjectURL/revokeObjectURLを実装していないため、画像プレビュー機能のテスト用にスタブを用意する
+Object.defineProperty(URL, 'createObjectURL', {
+  writable: true,
+  value: () => 'blob:mock-url',
+})
+
+Object.defineProperty(URL, 'revokeObjectURL', {
+  writable: true,
+  value: () => {},
+})

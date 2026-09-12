@@ -8,6 +8,7 @@ import { formatRelativeTime } from '../utils/relativeTime'
 import { TextLinkButton } from './TextLinkButton'
 import { ClickableAvatar } from './ClickableAvatar'
 import { UserNameLink } from './UserNameLink'
+import { PostImageGrid } from './PostImageGrid'
 
 interface PostCardProps {
   post: PostResponse
@@ -46,6 +47,7 @@ export function PostCard({ post, isOwner, onDelete, onToggleLike }: PostCardProp
               <Typography sx={{ marginTop: 0.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                 {post.body}
               </Typography>
+              <PostImageGrid imageUrls={post.imageUrls} />
             </Box>
           </Box>
         </Stack>

@@ -16,6 +16,7 @@ const basePost: PostResponse = {
   commentCount: 3,
   likeCount: 5,
   likedByMe: false,
+  imageUrls: [],
 }
 
 function renderCard(post: PostResponse, isOwner: boolean, onDelete = vi.fn(), onToggleLike = vi.fn()) {
