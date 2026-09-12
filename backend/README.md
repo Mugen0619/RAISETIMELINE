@@ -13,6 +13,11 @@
 2. リポジトリルートで `docker compose up -d` を実行し、ローカルDB(PostgreSQL 17、ポート5432)を起動する。
 3. `./gradlew bootRun` でアプリを起動する(ポート8080固定)。
 
+## API仕様書(Swagger UI)
+
+アプリ起動後、`http://localhost:8080/swagger-ui.html` でSwagger UIにアクセスできる(springdoc-openapiによりコードから自動生成)。
+認証が必要なAPIは、右上の「Authorize」ボタンから `/api/auth/login` 等で取得したアクセストークンを入力すると、Swagger UI上でそのまま呼び出せる。
+
 ## テスト
 
 ```

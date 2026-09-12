@@ -26,6 +26,7 @@
 | Spring Boot | 4.0系 | 執筆時点の最新パッチは4.0.7。Spring Boot 4.0.xはJava 21〜25をサポート |
 | Gradle | 9系 | Spring Boot 4.0.xの最小要件はGradle 8.14だが、9系が推奨 |
 | AWS SDK for Java v2 | 2.54系 | 投稿画像アップロード用のS3署名付きURL(presigned URL)発行に使用(`S3Presigner`) |
+| springdoc-openapi | 3.1系 | OpenAPI 3.1仕様書・Swagger UIの自動生成(`/swagger-ui.html`)。Spring Boot 4系に対応したv3系を採用 |
 
 ## データベース
 
