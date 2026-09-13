@@ -20,3 +20,20 @@ RaiseTech中級編の課題として開発する、X/Twitter風のテキスト�
 - バックエンド: [backend/README.md](backend/README.md)を参照(Java / Spring Boot、port 8080固定)
 - フロントエンド: `frontend/`ディレクトリで `npm install && npm run dev`(React / Vite、port 5173固定、`/api`をバックエンドへプロキシ)
 - ローカルDB: リポジトリルートで `docker compose up -d`(PostgreSQL、port 5432固定)
+
+## E2Eテスト
+
+代表的なユーザージャーニー(新規登録〜投稿、投稿詳細でのコメント・いいね・フォロー、ユーザー検索)をPlaywrightで検証する。
+単体・結合・コンポーネントテストとは異なり、バックエンド(実DB込み)とフロントエンドを実際に起動した状態で実行する。CIでの自動実行は対象外で、ローカルでのみ実行する。
+
+1. 上記のセットアップ手順に従い、DB・バックエンド・フロントエンドをすべて起動しておく
+2. 初回のみ、`frontend/`ディレクトリでブラウザ本体を取得する
+   ```
+   npx playwright install chromium
+   ```
+3. `frontend/`ディレクトリで実行する
+   ```
+   npm run test:e2e
+   ```
+
+テストのたびに一意なユーザー名・投稿内容を生成するため、DBをリセットせずに繰り返し実行できる。
