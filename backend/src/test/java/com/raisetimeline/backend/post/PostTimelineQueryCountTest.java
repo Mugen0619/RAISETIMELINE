@@ -79,7 +79,8 @@ class PostTimelineQueryCountTest {
 		List<Long> postIds = new ArrayList<>();
 		for (int i = 0; i < POST_COUNT; i++) {
 			ResponseEntity<PostResponse> created = restTemplate.exchange(
-					url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest(bodyMarker + i, null), ownerToken), PostResponse.class);
+					url("/api/posts"), HttpMethod.POST,
+					authedBody(new PostRequest(bodyMarker + i, null), ownerToken), PostResponse.class);
 			postIds.add(created.getBody().id());
 		}
 
@@ -111,7 +112,7 @@ class PostTimelineQueryCountTest {
 
 		long queryCount = statistics.getPrepareStatementCount();
 		assertThat(queryCount)
-				.as("timeline query count should stay small/constant, not grow proportionally with the number of posts (%d posts)", POST_COUNT)
+				.as("timeline query count should stay constant regardless of post count (%d posts)", POST_COUNT)
 				.isLessThanOrEqualTo(8);
 	}
 }

@@ -33,7 +33,8 @@ public class UserFollowController {
 	public PagedModel<FollowUserResponse> getFollowing(
 			@PathVariable Long userId,
 			@AuthenticationPrincipal User currentUser,
-			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC) Pageable pageable) {
+			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC)
+			Pageable pageable) {
 		return new PagedModel<>(followService.getFollowing(userId, currentUser.getId(), pageable));
 	}
 
@@ -41,7 +42,8 @@ public class UserFollowController {
 	public PagedModel<FollowUserResponse> getFollowers(
 			@PathVariable Long userId,
 			@AuthenticationPrincipal User currentUser,
-			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC) Pageable pageable) {
+			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC)
+			Pageable pageable) {
 		return new PagedModel<>(followService.getFollowers(userId, currentUser.getId(), pageable));
 	}
 }

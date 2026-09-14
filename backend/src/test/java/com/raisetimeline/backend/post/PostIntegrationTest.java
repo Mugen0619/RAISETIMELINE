@@ -137,12 +137,14 @@ class PostIntegrationTest {
 		String otherToken = registerAndGetAccessToken("erin");
 
 		ResponseEntity<PostResponse> created = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("original body", null), ownerToken), PostResponse.class);
+				url("/api/posts"), HttpMethod.POST,
+				authedBody(new PostRequest("original body", null), ownerToken), PostResponse.class);
 		Long postId = created.getBody().id();
 		Thread.sleep(5);
 
 		ResponseEntity<PostResponse> ownerUpdate = restTemplate.exchange(
-				url("/api/posts/" + postId), HttpMethod.PUT, authedBody(new PostRequest("updated body", null), ownerToken), PostResponse.class);
+				url("/api/posts/" + postId), HttpMethod.PUT,
+				authedBody(new PostRequest("updated body", null), ownerToken), PostResponse.class);
 		assertThat(ownerUpdate.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(ownerUpdate.getBody().body()).isEqualTo("updated body");
 		assertThat(ownerUpdate.getBody().updatedAt()).isAfter(created.getBody().updatedAt());
@@ -160,7 +162,8 @@ class PostIntegrationTest {
 		String otherToken = registerAndGetAccessToken("grace");
 
 		ResponseEntity<PostResponse> created = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("to be deleted", null), ownerToken), PostResponse.class);
+				url("/api/posts"), HttpMethod.POST,
+				authedBody(new PostRequest("to be deleted", null), ownerToken), PostResponse.class);
 		Long postId = created.getBody().id();
 
 		ResponseEntity<String> otherDelete = restTemplate.exchange(
@@ -212,7 +215,8 @@ class PostIntegrationTest {
 		String otherToken = registerAndGetAccessToken("mike");
 
 		ResponseEntity<PostResponse> created = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("to be deleted with children", null), ownerToken), PostResponse.class);
+				url("/api/posts"), HttpMethod.POST,
+				authedBody(new PostRequest("to be deleted with children", null), ownerToken), PostResponse.class);
 		Long postId = created.getBody().id();
 
 		restTemplate.exchange(url("/api/posts/" + postId + "/comments"), HttpMethod.POST,
@@ -238,7 +242,8 @@ class PostIntegrationTest {
 				"https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/5.jpg");
 
 		ResponseEntity<String> response = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("too many images", fiveImageUrls), token), String.class);
+				url("/api/posts"), HttpMethod.POST,
+				authedBody(new PostRequest("too many images", fiveImageUrls), token), String.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 	}
@@ -249,7 +254,8 @@ class PostIntegrationTest {
 		List<String> untrustedUrls = List.of("https://evil.example.com/image.png");
 
 		ResponseEntity<String> response = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("untrusted image", untrustedUrls), token), String.class);
+				url("/api/posts"), HttpMethod.POST,
+				authedBody(new PostRequest("untrusted image", untrustedUrls), token), String.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 	}
@@ -302,7 +308,8 @@ class PostIntegrationTest {
 		List<String> imageUrls = List.of("https://raisetimeline-test-bucket.s3.ap-northeast-1.amazonaws.com/posts/c.jpg");
 
 		ResponseEntity<PostResponse> created = restTemplate.exchange(
-				url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest("to be deleted", imageUrls), token), PostResponse.class);
+				url("/api/posts"), HttpMethod.POST,
+				authedBody(new PostRequest("to be deleted", imageUrls), token), PostResponse.class);
 		Long postId = created.getBody().id();
 
 		ResponseEntity<Void> delete = restTemplate.exchange(
@@ -326,7 +333,8 @@ class PostIntegrationTest {
 		Long postId = created.getBody().id();
 
 		ResponseEntity<PostResponse> updated = restTemplate.exchange(
-				url("/api/posts/" + postId), HttpMethod.PUT, authedBody(new PostRequest("updated", updatedUrls), token), PostResponse.class);
+				url("/api/posts/" + postId), HttpMethod.PUT,
+				authedBody(new PostRequest("updated", updatedUrls), token), PostResponse.class);
 
 		assertThat(updated.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(updated.getBody().imageUrls()).containsExactlyElementsOf(updatedUrls);

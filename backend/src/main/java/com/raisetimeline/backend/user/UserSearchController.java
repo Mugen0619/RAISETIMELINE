@@ -22,7 +22,8 @@ public class UserSearchController {
 	@GetMapping("/search")
 	public PagedModel<UserSummaryResponse> search(
 			@RequestParam(required = false) String q,
-			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC) Pageable pageable) {
+			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC)
+			Pageable pageable) {
 		return new PagedModel<>(userSearchService.search(q, pageable));
 	}
 }

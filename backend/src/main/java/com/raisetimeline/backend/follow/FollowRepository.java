@@ -26,12 +26,14 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
 	@EntityGraph(attributePaths = "follower")
 	Page<Follow> findByFolloweeId(Long followeeId, Pageable pageable);
 
-	@Query("""
+	@Query(
+			"""
 			SELECT f.followee.id
 			FROM Follow f
 			WHERE f.follower.id = :followerId AND f.followee.id IN :followeeIds
 			""")
-	List<Long> findFollowedUserIds(@Param("followerId") Long followerId, @Param("followeeIds") Collection<Long> followeeIds);
+	List<Long> findFollowedUserIds(
+			@Param("followerId") Long followerId, @Param("followeeIds") Collection<Long> followeeIds);
 
 	@Query("SELECT f.followee.id FROM Follow f WHERE f.follower.id = :followerId")
 	List<Long> findFolloweeIdsByFollowerId(@Param("followerId") Long followerId);

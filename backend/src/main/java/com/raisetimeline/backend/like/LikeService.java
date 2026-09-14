@@ -54,7 +54,8 @@ public class LikeService {
 	 */
 	private void createLikeIgnoringConcurrentDuplicate(Post post, User user) {
 		try {
-			requiresNewTransactionTemplate.executeWithoutResult(status -> likeRepository.saveAndFlush(new Like(post, user)));
+			requiresNewTransactionTemplate.executeWithoutResult(
+					status -> likeRepository.saveAndFlush(new Like(post, user)));
 		} catch (DataIntegrityViolationException e) {
 			// 同一ユーザーからの同時リクエストで既にLikeが作成済み。トグルは冪等に成功したものとして扱う。
 		}

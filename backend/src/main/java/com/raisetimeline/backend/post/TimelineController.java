@@ -23,7 +23,8 @@ public class TimelineController {
 	@GetMapping("/following")
 	public PagedModel<PostResponse> getFollowingTimeline(
 			@AuthenticationPrincipal User currentUser,
-			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC) Pageable pageable) {
+			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC)
+			Pageable pageable) {
 		return new PagedModel<>(postService.getFollowingTimeline(currentUser.getId(), pageable));
 	}
 }

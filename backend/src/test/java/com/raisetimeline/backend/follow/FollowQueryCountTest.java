@@ -102,7 +102,7 @@ class FollowQueryCountTest {
 
 		long queryCount = statistics.getPrepareStatementCount();
 		assertThat(queryCount)
-				.as("followers list query count should stay small/constant, not grow proportionally with the number of followers (%d followers)",
+				.as("followers list query count should stay constant regardless of follower count (%d followers)",
 						FOLLOWER_COUNT)
 				.isLessThanOrEqualTo(6);
 	}

@@ -18,7 +18,8 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
 
 	void deleteByPostId(Long postId);
 
-	@Query("""
+	@Query(
+			"""
 			SELECT l.post.id AS postId, COUNT(l) AS count
 			FROM Like l
 			WHERE l.post.id IN :postIds
@@ -26,7 +27,8 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
 			""")
 	List<PostCountProjection> countGroupedByPostIds(@Param("postIds") Collection<Long> postIds);
 
-	@Query("""
+	@Query(
+			"""
 			SELECT l.post.id
 			FROM Like l
 			WHERE l.user.id = :userId AND l.post.id IN :postIds

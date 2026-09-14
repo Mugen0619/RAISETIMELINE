@@ -29,6 +29,7 @@
 | AWS SDK for Java v2 | 2.54系 | 投稿画像アップロード用のS3署名付きURL(presigned URL)発行に使用(`S3Presigner`) |
 | springdoc-openapi | 3.1系 | OpenAPI 3.1仕様書・Swagger UIの自動生成(`/swagger-ui.html`)。Spring Boot 4系に対応したv3系を採用 |
 | logstash-logback-encoder | 9.0系 | ログのJSON構造化に使用。Jackson 3系に対応(詳細は[observability.md](./observability.md)を参照) |
+| Checkstyle | 14.1系 | 静的解析(Lint)。Google Java Styleをベースに、タブインデント・Javadoc必須化等プロジェクトの実態に合わせて一部調整(`backend/config/checkstyle/checkstyle.xml`) |
 
 ## データベース
 
