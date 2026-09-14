@@ -27,6 +27,7 @@ ext {
 	jjwtVersion = '0.12.6'
 	awsSdkVersion = '2.54.16'
 	springdocVersion = '3.1.1'
+	logstashLogbackEncoderVersion = '9.0'
 }
 
 dependencies {
@@ -43,6 +44,8 @@ dependencies {
 
 	implementation platform("software.amazon.awssdk:bom:${awsSdkVersion}")
 	implementation 'software.amazon.awssdk:s3'
+
+	implementation "net.logstash.logback:logstash-logback-encoder:${logstashLogbackEncoderVersion}"
 
 	runtimeOnly 'org.postgresql:postgresql'
 

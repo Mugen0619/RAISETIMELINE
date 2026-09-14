@@ -14,6 +14,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -132,5 +133,16 @@ class AuthIntegrationTest {
 		ResponseEntity<String> response = restTemplate.postForEntity(url("/api/auth/refresh"), refreshRequest, String.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void malformedJsonBodyReturns400NotInternalServerError() {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> malformedJson = new HttpEntity<>("{\"username\": \"truncated", headers);
+
+		ResponseEntity<String> response = restTemplate.postForEntity(url("/api/auth/register"), malformedJson, String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 	}
 }
