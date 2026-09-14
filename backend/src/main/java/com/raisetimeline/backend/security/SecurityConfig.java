@@ -37,6 +37,10 @@ public class SecurityConfig {
 				.authorizeHttpRequests(authorize -> authorize
 						.requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh").permitAll()
 						.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+						// /errorへの内部フォワードを認証必須にしてしまうと、未認証状態で発生した
+						// Spring MVC標準の例外(不正なJSONボディ等)が本来のステータス(400等)ではなく
+						// 401に上書きされてしまうため、常時許可する
+						.requestMatchers("/error").permitAll()
 						.anyRequest().authenticated())
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

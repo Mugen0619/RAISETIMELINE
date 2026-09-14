@@ -1,0 +1,33 @@
+<configuration>
+	<include resource="org/springframework/boot/logging/logback/defaults.xml" />
+
+	<springProperty scope="context" name="serviceName" source="spring.application.name" />
+
+	<appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="net.logstash.logback.encoder.LogstashEncoder">
+			<!-- springPropertyでcontextに登録したプロパティがそのままフィールドとして
+			     二重出力されるのを防ぐため、customFieldsのみを明示的に使う -->
+			<includeContext>false</includeContext>
+			<customFields>{"service":"${serviceName}"}</customFields>
+		</encoder>
+	</appender>
+
+	<appender name="PLAIN_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>${CONSOLE_LOG_PATTERN}</pattern>
+		</encoder>
+	</appender>
+
+	<!-- テスト実行時はテスト結果の可読性を優先し、従来のテキスト形式のまま出力する -->
+	<springProfile name="test">
+		<root level="INFO">
+			<appender-ref ref="PLAIN_CONSOLE" />
+		</root>
+	</springProfile>
+
+	<springProfile name="!test">
+		<root level="INFO">
+			<appender-ref ref="JSON_CONSOLE" />
+		</root>
+	</springProfile>
+</configuration>

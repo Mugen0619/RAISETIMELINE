@@ -1,5 +1,7 @@
 package com.raisetimeline.backend.common;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import com.raisetimeline.backend.auth.DuplicateUserException;
 import com.raisetimeline.backend.auth.InvalidCredentialsException;
 import com.raisetimeline.backend.auth.InvalidRefreshTokenException;
@@ -14,6 +16,8 @@ import com.raisetimeline.backend.profile.ForbiddenProfileAccessException;
 import com.raisetimeline.backend.user.UserNotFoundException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -23,84 +27,88 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+	private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex) {
 		Map<String, String> fieldErrors = new LinkedHashMap<>();
 		ex.getBindingResult().getFieldErrors()
 				.forEach(fe -> fieldErrors.putIfAbsent(fe.getField(), fe.getDefaultMessage()));
+		logRejection(HttpStatus.BAD_REQUEST, ex);
 		ApiError body = new ApiError(HttpStatus.BAD_REQUEST.value(), "Bad Request", "validation failed", fieldErrors);
 		return ResponseEntity.badRequest().body(body);
 	}
 
 	@ExceptionHandler(DuplicateUserException.class)
 	public ResponseEntity<ApiError> handleDuplicateUser(DuplicateUserException ex) {
-		ApiError body = new ApiError(HttpStatus.CONFLICT.value(), "Conflict", ex.getMessage());
-		return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+		return buildAndLog(HttpStatus.CONFLICT, "Conflict", ex);
 	}
 
 	@ExceptionHandler(InvalidCredentialsException.class)
 	public ResponseEntity<ApiError> handleInvalidCredentials(InvalidCredentialsException ex) {
-		ApiError body = new ApiError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized", ex.getMessage());
-		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+		return buildAndLog(HttpStatus.UNAUTHORIZED, "Unauthorized", ex);
 	}
 
 	@ExceptionHandler(InvalidRefreshTokenException.class)
 	public ResponseEntity<ApiError> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
-		ApiError body = new ApiError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized", ex.getMessage());
-		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+		return buildAndLog(HttpStatus.UNAUTHORIZED, "Unauthorized", ex);
 	}
 
 	@ExceptionHandler(PostNotFoundException.class)
 	public ResponseEntity<ApiError> handlePostNotFound(PostNotFoundException ex) {
-		ApiError body = new ApiError(HttpStatus.NOT_FOUND.value(), "Not Found", ex.getMessage());
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+		return buildAndLog(HttpStatus.NOT_FOUND, "Not Found", ex);
 	}
 
 	@ExceptionHandler(ForbiddenPostAccessException.class)
 	public ResponseEntity<ApiError> handleForbiddenPostAccess(ForbiddenPostAccessException ex) {
-		ApiError body = new ApiError(HttpStatus.FORBIDDEN.value(), "Forbidden", ex.getMessage());
-		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+		return buildAndLog(HttpStatus.FORBIDDEN, "Forbidden", ex);
 	}
 
 	@ExceptionHandler(CommentNotFoundException.class)
 	public ResponseEntity<ApiError> handleCommentNotFound(CommentNotFoundException ex) {
-		ApiError body = new ApiError(HttpStatus.NOT_FOUND.value(), "Not Found", ex.getMessage());
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+		return buildAndLog(HttpStatus.NOT_FOUND, "Not Found", ex);
 	}
 
 	@ExceptionHandler(ForbiddenCommentAccessException.class)
 	public ResponseEntity<ApiError> handleForbiddenCommentAccess(ForbiddenCommentAccessException ex) {
-		ApiError body = new ApiError(HttpStatus.FORBIDDEN.value(), "Forbidden", ex.getMessage());
-		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+		return buildAndLog(HttpStatus.FORBIDDEN, "Forbidden", ex);
 	}
 
 	@ExceptionHandler(UserNotFoundException.class)
 	public ResponseEntity<ApiError> handleUserNotFound(UserNotFoundException ex) {
-		ApiError body = new ApiError(HttpStatus.NOT_FOUND.value(), "Not Found", ex.getMessage());
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+		return buildAndLog(HttpStatus.NOT_FOUND, "Not Found", ex);
 	}
 
 	@ExceptionHandler(SelfFollowException.class)
 	public ResponseEntity<ApiError> handleSelfFollow(SelfFollowException ex) {
-		ApiError body = new ApiError(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage());
-		return ResponseEntity.badRequest().body(body);
+		return buildAndLog(HttpStatus.BAD_REQUEST, "Bad Request", ex);
 	}
 
 	@ExceptionHandler(ForbiddenProfileAccessException.class)
 	public ResponseEntity<ApiError> handleForbiddenProfileAccess(ForbiddenProfileAccessException ex) {
-		ApiError body = new ApiError(HttpStatus.FORBIDDEN.value(), "Forbidden", ex.getMessage());
-		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+		return buildAndLog(HttpStatus.FORBIDDEN, "Forbidden", ex);
 	}
 
 	@ExceptionHandler(InvalidImageException.class)
 	public ResponseEntity<ApiError> handleInvalidImage(InvalidImageException ex) {
-		ApiError body = new ApiError(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage());
-		return ResponseEntity.badRequest().body(body);
+		return buildAndLog(HttpStatus.BAD_REQUEST, "Bad Request", ex);
 	}
 
 	@ExceptionHandler(InvalidPostContentException.class)
 	public ResponseEntity<ApiError> handleInvalidPostContent(InvalidPostContentException ex) {
-		ApiError body = new ApiError(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage());
-		return ResponseEntity.badRequest().body(body);
+		return buildAndLog(HttpStatus.BAD_REQUEST, "Bad Request", ex);
+	}
+
+	private ResponseEntity<ApiError> buildAndLog(HttpStatus status, String reason, RuntimeException ex) {
+		logRejection(status, ex);
+		ApiError body = new ApiError(status.value(), reason, ex.getMessage());
+		return ResponseEntity.status(status).body(body);
+	}
+
+	private void logRejection(HttpStatus status, Exception ex) {
+		log.warn("request rejected with {}",
+				status.value(),
+				kv("exceptionType", ex.getClass().getSimpleName()),
+				kv("exceptionMessage", ex.getMessage()));
 	}
 }
