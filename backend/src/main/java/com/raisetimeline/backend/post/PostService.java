@@ -162,7 +162,8 @@ public class PostService {
 		if (imageUrls != null) {
 			for (String imageUrl : imageUrls) {
 				if (!imagePresignService.isTrustedImageUrl(imageUrl)) {
-					throw new InvalidPostContentException("image url is not from the configured storage bucket");
+					throw new InvalidPostContentException(
+							"image url is not from the configured storage bucket");
 				}
 			}
 		}

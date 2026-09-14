@@ -90,7 +90,8 @@ class FollowingTimelineQueryCountTest {
 			follow(followee.userId(), viewer.token());
 
 			ResponseEntity<PostResponse> created = restTemplate.exchange(
-					url("/api/posts"), HttpMethod.POST, authedBody(new PostRequest(bodyMarker + i, null), followee.token()), PostResponse.class);
+					url("/api/posts"), HttpMethod.POST,
+					authedBody(new PostRequest(bodyMarker + i, null), followee.token()), PostResponse.class);
 			Long postId = created.getBody().id();
 
 			restTemplate.exchange(url("/api/posts/" + postId + "/comments"), HttpMethod.POST,
@@ -120,7 +121,7 @@ class FollowingTimelineQueryCountTest {
 
 		long queryCount = statistics.getPrepareStatementCount();
 		assertThat(queryCount)
-				.as("following timeline query count should stay small/constant, not grow proportionally with the number of followees (%d followees)",
+				.as("following timeline query count should stay constant regardless of followee count (%d followees)",
 						FOLLOWEE_COUNT)
 				.isLessThanOrEqualTo(8);
 	}

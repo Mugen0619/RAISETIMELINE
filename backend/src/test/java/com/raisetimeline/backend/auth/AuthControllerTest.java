@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.raisetimeline.backend.security.JwtService;
 import com.raisetimeline.backend.user.UserRepository;
-import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -17,13 +16,14 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * AuthControllerのWeb層テスト。AuthServiceはMockitoでモックし、
  * HTTPステータス・例外→レスポンスのマッピング(GlobalExceptionHandler)のみを検証する。
  * JWT認可の挙動はMeControllerSecurityTestで別途検証する。
  * addFilters=falseでセキュリティフィルタは無効化するが、JwtAuthenticationFilterが
- * @WebMvcTestのFilter自動検出でBean化されるため、その依存関係はモックしておく必要がある。
+ * {@code @WebMvcTest}のFilter自動検出でBean化されるため、その依存関係はモックしておく必要がある。
  */
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)

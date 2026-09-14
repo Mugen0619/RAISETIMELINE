@@ -35,7 +35,8 @@ public class AuthService {
 		String displayName = request.displayName() != null && !request.displayName().isBlank()
 				? request.displayName()
 				: request.username();
-		User user = new User(request.username(), request.email(), passwordEncoder.encode(request.password()), displayName);
+		User user = new User(
+				request.username(), request.email(), passwordEncoder.encode(request.password()), displayName);
 		User saved = userRepository.save(user);
 
 		return issueAuthResponse(saved);

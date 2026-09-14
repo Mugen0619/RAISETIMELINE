@@ -38,7 +38,8 @@ public class PostCommentController {
 	@GetMapping
 	public PagedModel<CommentResponse> getComments(
 			@PathVariable Long postId,
-			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.ASC) Pageable pageable) {
+			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.ASC)
+			Pageable pageable) {
 		return new PagedModel<>(commentService.getComments(postId, pageable));
 	}
 }

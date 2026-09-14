@@ -6,10 +6,10 @@ import com.raisetimeline.backend.common.MeController;
 import com.raisetimeline.backend.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -100,7 +100,8 @@ class AuthIntegrationTest {
 		HttpHeaders validHeaders = new HttpHeaders();
 		validHeaders.setBearerAuth(registered.accessToken());
 		ResponseEntity<MeController.MeResponse> withToken = restTemplate.exchange(
-				url("/api/me"), org.springframework.http.HttpMethod.GET, new HttpEntity<>(validHeaders), MeController.MeResponse.class);
+				url("/api/me"), org.springframework.http.HttpMethod.GET,
+				new HttpEntity<>(validHeaders), MeController.MeResponse.class);
 		assertThat(withToken.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(withToken.getBody()).isNotNull();
 		assertThat(withToken.getBody().username()).isEqualTo("dave");

@@ -39,7 +39,8 @@ public class PostController {
 	@GetMapping
 	public PagedModel<PostResponse> getTimeline(
 			@AuthenticationPrincipal User currentUser,
-			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC) Pageable pageable) {
+			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC)
+			Pageable pageable) {
 		return new PagedModel<>(postService.getTimeline(pageable, currentUser.getId()));
 	}
 

@@ -25,7 +25,8 @@ public class UserPostController {
 	public PagedModel<PostResponse> getUserPosts(
 			@PathVariable Long userId,
 			@AuthenticationPrincipal User currentUser,
-			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC) Pageable pageable) {
+			@PageableDefault(size = 20, sort = { "createdAt", "id" }, direction = Sort.Direction.DESC)
+			Pageable pageable) {
 		return new PagedModel<>(postService.getPostsByUser(userId, pageable, currentUser.getId()));
 	}
 }
