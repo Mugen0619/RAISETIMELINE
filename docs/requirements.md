@@ -110,7 +110,7 @@ RaiseTech受講生・卒業生など、学習コミュニティ内での交流�
 
 - 認証・認可
 - N+1問題
-- テスト
+- テスト(負荷試験の詳細は[k6/README.md](../k6/README.md)を参照)
 - ログ(構造化ログの詳細は[observability.md](./observability.md)、ログの読み方・簡易インシデント対応は[operations-guide.md](./operations-guide.md)を参照。外部監視ツール連携・分散トレーシング基盤の構築は引き続き今後の課題)
 - CI/CD
 - AWSデプロイ
