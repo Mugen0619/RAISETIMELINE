@@ -154,13 +154,13 @@ export function ProfilePage() {
           <IconButton edge="start" onClick={() => navigate(-1)} aria-label="戻る">
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h6" fontWeight={700}>
+          <Typography variant="h6" component="h1" fontWeight={700}>
             {profile.displayName}
           </Typography>
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="sm" sx={{ paddingY: 2 }}>
+      <Container component="main" maxWidth="sm" sx={{ paddingY: 2 }}>
         {error && (
           <Typography color="error" sx={{ marginBottom: 2 }}>
             {error}
@@ -188,7 +188,7 @@ export function ProfilePage() {
             )}
           </Stack>
 
-          <Typography variant="h6" fontWeight={700} sx={{ marginTop: 1.5 }}>
+          <Typography variant="h6" component="h2" fontWeight={700} sx={{ marginTop: 1.5 }}>
             {profile.displayName}
           </Typography>
           <Typography variant="body2" color="text.secondary" fontFamily="monospace">
