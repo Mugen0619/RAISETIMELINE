@@ -176,7 +176,7 @@ export function TimelinePage() {
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <AppBar position="sticky" color="inherit" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Toolbar sx={{ gap: 1.5 }}>
-          <Typography variant="h6" fontWeight={700} fontFamily="'Zen Maru Gothic', sans-serif">
+          <Typography variant="h6" component="h1" fontWeight={700} fontFamily="'Zen Maru Gothic', sans-serif">
             タイムライン
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
@@ -199,7 +199,7 @@ export function TimelinePage() {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="sm" sx={{ paddingY: 2 }}>
+      <Container component="main" maxWidth="sm" sx={{ paddingY: 2 }}>
         <Tabs value={tab} onChange={(_, value: TabValue) => setTab(value)} sx={{ marginBottom: 2 }}>
           <Tab label="全体" value="all" />
           <Tab label="フォロー中" value="following" />

@@ -159,13 +159,13 @@ export function PostDetailPage() {
           <IconButton edge="start" onClick={() => navigate('/home')} aria-label="戻る">
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h6" fontWeight={700}>
+          <Typography variant="h6" component="h1" fontWeight={700}>
             投稿
           </Typography>
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="sm" sx={{ paddingY: 2 }}>
+      <Container component="main" maxWidth="sm" sx={{ paddingY: 2 }}>
         {error && (
           <Typography color="error" sx={{ marginBottom: 2 }}>
             {error}

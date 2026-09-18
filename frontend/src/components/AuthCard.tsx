@@ -10,6 +10,7 @@ interface AuthCardProps {
 export function AuthCard({ title, subtitle, children }: AuthCardProps) {
   return (
     <Box
+      component="main"
       sx={{
         minHeight: '100vh',
         display: 'grid',

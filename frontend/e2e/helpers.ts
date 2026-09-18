@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import AxeBuilder from '@axe-core/playwright'
 
 export interface TestUser {
   email: string
@@ -13,9 +14,12 @@ export interface TestUser {
  */
 export function createTestUser(label: string): TestUser {
   const unique = `${Date.now()}${Math.floor(Math.random() * 10000)}`
+  // usernameは英数字とアンダースコアのみ許可(バックエンドのバリデーション)のため、
+  // labelにハイフンを含めて呼び出しても安全なように正規化する。
+  const usernameSafeLabel = label.replace(/-/g, '_')
   return {
     email: `e2e-${label}-${unique}@example.com`,
-    username: `e2e${label}${unique}`.slice(0, 32),
+    username: `e2e${usernameSafeLabel}${unique}`.slice(0, 32),
     displayName: `E2E ${label} ${unique}`,
     password: 'Password123!',
   }
@@ -46,4 +50,20 @@ export async function loginViaUi(page: Page, user: TestUser): Promise<void> {
 export async function registerAndLogin(page: Page, user: TestUser): Promise<void> {
   await registerViaUi(page, user)
   await loginViaUi(page, user)
+}
+
+/**
+ * 現在のページに対してaxe-coreでアクセシビリティ違反を検査し、違反ゼロであることを検証する。
+ * 失敗時は違反ルールごとに影響を受けた要素のセレクタを表示し、原因を特定しやすくする。
+ */
+export async function expectNoAccessibilityViolations(page: Page): Promise<void> {
+  const results = await new AxeBuilder({ page }).analyze()
+  const details = results.violations
+    .map((violation) => {
+      const targets = violation.nodes.map((node) => node.target.join(' ')).join(', ')
+      return `[${violation.id}] ${violation.help} (${violation.helpUrl})\n  対象: ${targets}`
+    })
+    .join('\n')
+
+  expect(results.violations, details).toEqual([])
 }
