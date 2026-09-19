@@ -112,8 +112,11 @@ jobs:
       - name: Wait for backend to be ready
         run: |
           for i in $(seq 1 60); do
-            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/auth/login || echo "000")
-            if [ "$status" != "000" ]; then
+            # curlは接続失敗時も%{http_code}として"000"を出力するため、`|| echo`で二重に
+            # 付け足すと"000000"のような値になってしまう。`|| true`でコマンド置換自体の
+            # 失敗だけを握りつぶし、出力(status)はcurlのものをそのまま使う。
+            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/auth/login 2>/dev/null) || true
+            if [ "$status" != "000" ] && [ -n "$status" ]; then
               echo "Backend is up (status: $status)"
               exit 0
             fi
@@ -131,8 +134,8 @@ jobs:
       - name: Wait for frontend to be ready
         run: |
           for i in $(seq 1 30); do
-            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/ || echo "000")
-            if [ "$status" != "000" ]; then
+            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/ 2>/dev/null) || true
+            if [ "$status" != "000" ] && [ -n "$status" ]; then
               echo "Frontend is up (status: $status)"
               exit 0
             fi
