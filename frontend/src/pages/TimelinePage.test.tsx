@@ -86,8 +86,7 @@ describe('TimelinePage', () => {
     renderTimelinePage()
 
     expect(await screen.findByText('hello there')).toBeInTheDocument()
-    // CI失敗検知の動作確認のため意図的に誤った期待値にしている(検証後に元へ戻す)
-    expect(mockedFetchTimeline).toHaveBeenCalledWith(0, 999)
+    expect(mockedFetchTimeline).toHaveBeenCalledWith(0, 20)
   })
 
   it('shows an empty state when there are no posts', async () => {
