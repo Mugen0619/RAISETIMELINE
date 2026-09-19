@@ -1,6 +1,8 @@
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from './tokenStorage'
 
-const API_BASE = '/api'
+// 本番ビルド時にAPI接続先(ALBドメイン等)を切り替える場合はVITE_API_BASE_URLを設定する。
+// 未設定時は相対パスのままとなり、CloudFrontの/api/*ビヘビア経由でALBへプロキシされる想定(同一オリジンで完結する)
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL ?? ''}/api`
 
 export class ApiError extends Error {
   status: number

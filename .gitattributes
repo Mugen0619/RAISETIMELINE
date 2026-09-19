@@ -1,0 +1,3 @@
+# Windows(core.autocrlf=true)でCRLFに変換されると、Dockerビルド(Linuxコンテナ内)で
+# シェバンが壊れて "gradlew: not found" になるため、常にLFを強制する
+backend/gradlew text eol=lf
