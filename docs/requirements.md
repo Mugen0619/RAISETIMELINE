@@ -112,5 +112,5 @@ RaiseTech受講生・卒業生など、学習コミュニティ内での交流�
 - N+1問題
 - テスト(E2Eテストにおけるアクセシビリティ検査・ブラウザパフォーマンス計測の詳細はリポジトリルートの[README.md](../README.md)の「E2Eテスト」節を、負荷試験の詳細は[k6/README.md](../k6/README.md)を参照)
 - ログ(構造化ログの詳細は[observability.md](./observability.md)、ログの読み方・簡易インシデント対応は[operations-guide.md](./operations-guide.md)を参照。外部監視ツール連携・分散トレーシング基盤の構築は引き続き今後の課題)
-- CI/CD
+- CI/CD(CI(自動テスト実行)はGitHub Actionsで導入済み。詳細はリポジトリルートの[README.md](../README.md)の「CI」節を参照。CD(本番デプロイの自動化)は引き続き今後の課題)
 - AWSデプロイ
