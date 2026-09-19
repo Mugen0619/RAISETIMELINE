@@ -7,7 +7,8 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  reporter: 'list',
+  // CI上ではplaywright-report(HTML)もあわせて生成し、失敗時にアーティファクトとして確認できるようにする
+  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'retain-on-failure',

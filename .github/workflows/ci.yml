@@ -1,0 +1,176 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# 同一ブランチへの連続pushで古い実行が走り続けるのを防ぎ、Actionsの実行時間を無駄にしない
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend Test & Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: gradle
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Run Checkstyle
+        run: ./gradlew checkstyleMain checkstyleTest
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-test-report
+          path: backend/build/reports/tests/test
+          retention-days: 7
+
+  frontend:
+    name: Frontend Test & Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit/component tests
+        run: npm test
+
+      - name: Run lint
+        run: npm run lint
+
+  e2e:
+    name: E2E Test (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: raisetimeline
+          POSTGRES_USER: raisetimeline
+          POSTGRES_PASSWORD: raisetimeline
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      # 実際の秘密情報ではなく、CI上でのみ使う使い捨てのダミー値
+      # (E2E対象のジャーニー・アクセシビリティ検査はS3画像アップロード機能を使わないため、
+      # AWS認証情報はpresign URL発行のローカル署名計算にのみ使われ、実際にAWSへは接続しない)
+      JWT_SECRET: ci-only-dummy-secret-key-not-for-production-use-48bytes-minimum
+      AWS_S3_BUCKET_NAME: ci-dummy-bucket
+      AWS_S3_PUBLIC_BASE_URL: https://ci-dummy-bucket.s3.ap-northeast-1.amazonaws.com
+      AWS_S3_ACCESS_KEY_ID: ci-dummy-access-key-id
+      AWS_S3_SECRET_ACCESS_KEY: ci-dummy-secret-access-key
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: gradle
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Start backend
+        working-directory: backend
+        run: nohup ./gradlew bootRun > "$RUNNER_TEMP/backend.log" 2>&1 &
+
+      - name: Wait for backend to be ready
+        run: |
+          for i in $(seq 1 60); do
+            # curlは接続失敗時も%{http_code}として"000"を出力するため、`|| echo`で二重に
+            # 付け足すと"000000"のような値になってしまう。`|| true`でコマンド置換自体の
+            # 失敗だけを握りつぶし、出力(status)はcurlのものをそのまま使う。
+            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/auth/login 2>/dev/null) || true
+            if [ "$status" != "000" ] && [ -n "$status" ]; then
+              echo "Backend is up (status: $status)"
+              exit 0
+            fi
+            echo "Waiting for backend... ($i)"
+            sleep 2
+          done
+          echo "Backend did not start in time"
+          cat "$RUNNER_TEMP/backend.log"
+          exit 1
+
+      - name: Start frontend
+        working-directory: frontend
+        run: nohup npm run dev > "$RUNNER_TEMP/frontend.log" 2>&1 &
+
+      - name: Wait for frontend to be ready
+        run: |
+          for i in $(seq 1 30); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/ 2>/dev/null) || true
+            if [ "$status" != "000" ] && [ -n "$status" ]; then
+              echo "Frontend is up (status: $status)"
+              exit 0
+            fi
+            echo "Waiting for frontend... ($i)"
+            sleep 2
+          done
+          echo "Frontend did not start in time"
+          cat "$RUNNER_TEMP/frontend.log"
+          exit 1
+
+      # ブラウザパフォーマンステスト(performance.spec.ts)は、共有ランナーの性能変動により
+      # しきい値判定が信頼できないため除外し、ユーザージャーニー+アクセシビリティ検査のみ実行する
+      - name: Run E2E tests (excluding browser performance)
+        working-directory: frontend
+        run: npx playwright test --grep-invert "ブラウザパフォーマンス"
+
+      - name: Show backend/frontend logs on failure
+        if: failure()
+        run: |
+          echo "=== backend.log ==="
+          cat "$RUNNER_TEMP/backend.log" || true
+          echo "=== frontend.log ==="
+          cat "$RUNNER_TEMP/frontend.log" || true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+          retention-days: 7
