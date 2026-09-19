@@ -23,3 +23,7 @@
 ```
 ./gradlew test
 ```
+
+## 本番環境(prodプロファイル)
+
+`SPRING_PROFILES_ACTIVE=prod` で起動すると、Actuatorのヘルスチェック(`/actuator/health`のみ公開)が有効になる(構造化JSONログは`logback-spring.xml`により`test`以外の全プロファイルで有効)。RDS接続情報・CORS許可オリジン(`CORS_ALLOWED_ORIGIN`)等は環境変数で切り替える。Dockerイメージのbuild、ECR push、ECSへのデプロイ手順は[infra/production/README.md](../infra/production/README.md)を参照。

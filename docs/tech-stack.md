@@ -32,6 +32,7 @@
 | AWS SDK for Java v2 | 2.54系 | 投稿画像アップロード用のS3署名付きURL(presigned URL)発行に使用(`S3Presigner`) |
 | springdoc-openapi | 3.1系 | OpenAPI 3.1仕様書・Swagger UIの自動生成(`/swagger-ui.html`)。Spring Boot 4系に対応したv3系を採用 |
 | logstash-logback-encoder | 9.0系 | ログのJSON構造化に使用。Jackson 3系に対応(詳細は[observability.md](./observability.md)を参照) |
+| Spring Boot Actuator | Spring Boot 4.0系に準拠 | ALBヘルスチェック用に`/actuator/health`のみを公開(prodプロファイルで`health`以外は非公開) |
 | Checkstyle | 14.1系 | 静的解析(Lint)。Google Java Styleをベースに、タブインデント・Javadoc必須化等プロジェクトの実態に合わせて一部調整(`backend/config/checkstyle/checkstyle.xml`) |
 
 ## データベース
@@ -39,6 +40,13 @@
 | 技術 | バージョン | 備考 |
 |---|---|---|
 | PostgreSQL | 17系 | 執筆時点の最新パッチは17.11。PostgreSQL 18が新メジャーとして存在するが、今回は下書き案の17系を維持 |
+
+## コンテナ
+
+| 技術 | バージョン | 備考 |
+|---|---|---|
+| Docker | ビルド確認は29.7系 | バックエンドをECS Fargateへデプロイするためのコンテナ化(`backend/Dockerfile`) |
+| eclipse-temurin(ベースイメージ) | 25(JDK/JRE) | マルチステージビルド(ビルド:JDK、実行:JRE) |
 
 ## CI
 

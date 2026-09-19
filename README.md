@@ -70,6 +70,10 @@ RaiseTech中級編の課題として開発する、X/Twitter風のテキスト�
 | 投稿詳細 | 約261ms | 約158ms | 3000ms |
 | プロフィール | 約241ms | 約156ms | 3000ms |
 
+## 本番環境(AWS)
+
+AWS上にECS Fargate(バックエンド)+ RDS(PostgreSQL)+ S3/CloudFront(フロントエンド)構成で本番環境を構築する。Terraform構成・デプロイ手順(Dockerイメージbuild/ECR push/ECSサービス更新、フロントエンドbuild/S3アップロード/CloudFrontキャッシュ無効化)は[infra/production/README.md](infra/production/README.md)、ネットワーク構成の概要は[docs/infrastructure.md](docs/infrastructure.md)を参照。デプロイの自動化(CD)は今回のスコープ外で、手動デプロイ手順のみ整備している。
+
 ## 負荷試験
 
 タイムライン取得・フォロー中タイムライン取得・ログインの代表的なAPIについて、[k6](https://k6.io/)で負荷試験を行う。個人開発規模(数十仮想ユーザー程度)を想定し、E2Eテストと同様にローカル実行のみを対象とする。詳細は[k6/README.md](k6/README.md)を参照。

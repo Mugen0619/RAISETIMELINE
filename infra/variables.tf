@@ -10,8 +10,11 @@ variable "project_name" {
   default     = "raisetimeline"
 }
 
-variable "cors_allowed_origin" {
-  description = "S3バケットへのPUTアップロードを許可するオリジン(ローカル開発用フロントエンド)"
-  type        = string
-  default     = "http://localhost:5173"
+variable "cors_allowed_origins" {
+  description = "S3バケットへのPUTアップロードを許可するオリジン(ローカル開発用フロントエンド+本番CloudFrontドメイン)"
+  type        = list(string)
+  default = [
+    "http://localhost:5173",
+    "https://d13mtgfnf6x0ya.cloudfront.net",
+  ]
 }
