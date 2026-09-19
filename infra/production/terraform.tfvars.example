@@ -1,0 +1,16 @@
+# cp terraform.tfvars.example terraform.tfvars として使う(terraform.tfvarsはGit管理外)
+# 値は ../infra/ (投稿画像用S3バケット) の terraform output から取得する
+#   cd ../
+#   terraform output bucket_name
+#   terraform output bucket_public_base_url
+#   terraform output access_key_id
+#   terraform output -raw secret_access_key
+
+s3_image_bucket_name     = "raisetimeline-post-images-xxxxxxxx"
+s3_image_public_base_url = "https://raisetimeline-post-images-xxxxxxxx.s3.ap-northeast-1.amazonaws.com"
+s3_access_key_id         = "AKIAXXXXXXXXXXXXXXXX"
+s3_secret_access_key     = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# 初回applyの前に、空のリポジトリへ一時的なイメージをpushしておくか、
+# 後述のデプロイ手順に従いECRへbackendイメージをpushしてからbackend_image_tagを指定する
+# backend_image_tag = "latest"
